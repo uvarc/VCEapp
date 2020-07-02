@@ -1,0 +1,35 @@
+# Customize this file and rename to `.travis.yml` for implementation.
+
+branches:
+  only:
+  - master
+  - staging
+  - dev
+
+language: bash
+
+services:
+  - docker
+
+before_install:
+  - sudo pip install --upgrade pip
+  - pip install --user awscli
+  - export PATH=$PATH:$HOME/.local/bin
+  - echo $DOCKER_PASSWORD | docker login -u "$DOCKER_USERNAME" --password-stdin 
+
+install:
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker build --no-cache -t your-org/your-container:latest . || exit 1;
+    docker push your-org/your-container:latest || exit 1;
+    fi
+  - if [ "$TRAVIS_BRANCH" == "dev" ]; then
+    docker build --no-cache -t your-org/your-container:dev . || exit 1;
+    docker push your-org/your-container:dev || exit 1;
+    fi
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
+    recipients:
+    - mst3k@virginia.edu

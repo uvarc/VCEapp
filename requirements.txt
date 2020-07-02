@@ -1,0 +1,15 @@
+Flask
+boto3
+pandas 
+numpy 
+io 
+base64
+cv2
+dash
+dash_html_components
+dash_core_components
+dash_table
+plotly
+plotly_express 
+matplotlib
+json
