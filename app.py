@@ -31,6 +31,90 @@ app = Flask(__name__)
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
 
 
+
+videos=[]
+
+for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
+    if file.endswith(".csv"):
+        videos.append(file[0:-4])
+        
+videos
+
+## Function to Convert Matplotlib Image
+
+
+def fig_to_uri(in_fig, close_all=True, **save_args):
+    # type: (plt.Figure) -> str
+    """
+    Save a figure as a URI
+    :param in_fig:
+    :return:
+    """
+    out_img = BytesIO()
+    in_fig.savefig(out_img, format='png', **save_args)
+    if close_all:
+        in_fig.clf()
+        plt.close('all')
+    out_img.seek(0)  # rewind file
+    encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
+    return "data:image/png;base64,{}".format(encoded)
+
+
+
+
+## My function to Display Video Frames
+
+def buildfig(input_value, n_val, vid):    
+    frames=[-2,-1,0,1]
+    
+    fig, ax1 = plt.subplots(1,len(frames),figsize=(28,7))
+
+    row=n_val
+
+    for i,offset  in enumerate(frames):
+        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(row+offset)+'.png'    ## may need to be updated for final!
+        try:
+            whole=cv2.imread(impath)
+            ax1[i].imshow(cv2.cvtColor(whole, cv2.COLOR_BGR2RGB))
+            ax1[i].set_title('Frame + ' + str(offset))
+        except:
+            #ax1[i].imshow(cv2.cvtColor(whole, cv2.COLOR_BGR2RGB))
+            ax1[i].set_title('No Frame + ' + str(offset))
+    
+    return fig
+
+vidLabes=[]
+for vid in videos:
+    vidLabes.append({'label': 'Model Result: '+ str(vid), 'value':str(vid)})
+
+labelsdf=pd.read_csv('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+str(videos[2])+'.csv')
+labelsdf=labelsdf.replace(np.nan, '', regex=True)
+
+labelsdf=labelsdf.reset_index()
+
+
+timeline=dcc.Graph(
+        id='timeline',
+        figure= px.scatter(data_frame=labelsdf, y='Pathology', x='index', color='TractSect1', hover_name="time" )
+    )
+
+graph_height=300
+
+figure= px.scatter(labelsdf, y='Pathology', x='index', color='TractSect1', hover_name="time", height=graph_height )
+figure.layout={
+                'clickmode': 'event+select'
+            }
+
+videoSelect=dcc.Dropdown(
+        id='videoSelect',
+        options=vidLabes,
+        value=videos[0]
+    )
+PAGE_SIZE=50
+
+
+
+
 fig= buildfig('init',0, 1)
 out_url = fig_to_uri(fig)
 
@@ -185,9 +269,9 @@ def return_data(value):
 
     vid=value
     try:
-        labelsdf=pd.read_csv('DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+str(vid)+'.csv')
+        labelsdf=pd.read_csv('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+str(vid)+'.csv')
     except:
-        labelsdf=pd.read_csv('DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+videos[0]+'.csv')
+        labelsdf=pd.read_csv('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+videos[0]+'.csv')
     
     labelsdf=labelsdf.replace(np.nan, '', regex=True)
 
