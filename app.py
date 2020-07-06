@@ -295,7 +295,7 @@ def return_data(value):
 def display_click_data(clickData):
     test=clickData
     try:
-        return test['points'][0]['x']
+        return str(test['points'][0]['x']) + str(dash.__version__)
     except:
         return ''
 
