@@ -275,7 +275,7 @@ def return_data(value):
     
     labelsdf=labelsdf.replace(np.nan, '', regex=True)
 
-    offsetvar=labelsdf['index'].min() 
+    offsetvar=1 # labelsdf['index'].min() 
     
     #labelsdf=labelsdf[labelsdf['TractSect1']=='small bowel']
 
