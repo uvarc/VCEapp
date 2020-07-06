@@ -19,12 +19,13 @@ before_install:
 
 install:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker build --no-cache -t your-org/your-container:latest . || exit 1;
-    docker push your-org/your-container:latest || exit 1;
+    docker build --no-cache -t uvarc/vce-app:latest . || exit 1;
+    docker push uvarc/vce-app:latest || exit 1;
+    aws sqs send-message --queue-url 'https://queue.amazonaws.com/474683445819/dcos-refresh' --message-body 'jablonski/vce-app' || exit 1;
     fi
   - if [ "$TRAVIS_BRANCH" == "dev" ]; then
-    docker build --no-cache -t your-org/your-container:dev . || exit 1;
-    docker push your-org/your-container:dev || exit 1;
+    docker build --no-cache -t uvarc/vce-app:dev . || exit 1;
+    docker push uvarc/vce-app:dev || exit 1;
     fi
 
 notifications:
