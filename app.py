@@ -266,7 +266,7 @@ def update_chart(jsonified_cleaned_data):
 
 @application.callback([Output('table-var', 'children'), Output('offset-var', 'children')], [Input('videoSelect', 'value')])
 def return_data(value):
-
+    print('test debug')
     vid=value
     try:
         labelsdf=pd.read_csv('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+str(vid)+'.csv')
