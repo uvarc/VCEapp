@@ -158,7 +158,7 @@ styles = {
 application.layout = html.Div(
     [
         html.H2('Deep VCE Results Explorer'),
-        html.Img(style={'width':'100%'}, src='/vids/v1/1.png'),
+        html.Img(style={'width':'100%'}, src='/Videos/v1/1.png'),
         html.Img(style={'width':'100%'}, src='/v1/1.png'),
         html.H5('Choose a Video and Model Prediction Result to Begin:'),
         videoSelect,  
