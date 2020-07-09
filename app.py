@@ -158,6 +158,8 @@ styles = {
 application.layout = html.Div(
     [
         html.H2('Deep VCE Results Explorer'),
+        html.Img(style={'width':'100%'}, src='/vids/v1/1.png'),
+        html.Img(style={'width':'100%'}, src='/v1/1.png'),
         html.H5('Choose a Video and Model Prediction Result to Begin:'),
         videoSelect,  
         html.H5('Select points or peaks to explore results:'),
@@ -363,10 +365,13 @@ def return_data(value):
 
 
 
-@app.route('/static/<path:path>')
-def send_js(path):
-    return send_from_directory(filespath, path)
+@app.route('/vids/<path:filename>')
+def send_js(path,filename):
+    return send_from_directory(filespath+path, filename)
 
+@app.route('/v1/<path:file>')
+def send_js(path):
+    return send_from_directory(filespath+'v1/', path)
 
 
 if __name__ == '__main__':
