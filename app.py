@@ -362,7 +362,9 @@ def return_data(value):
 
 
 
-
+@app.route('/static/<path:path>')
+def send_js(path):
+    return send_from_directory(filespath, path)
 
 
 
