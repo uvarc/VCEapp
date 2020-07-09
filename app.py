@@ -365,11 +365,15 @@ def return_data(value):
 
 
 
-@app.route('/vids/<path:filename>')
-def send_jss(path,filename):
+@app.route('/vids/<path:path>')
+def send_jss(path):
+    pos=-(path[::-1].find('/'))
+    filename=path[pos::]
+    path=path[0:pos]
+    print('poop')
     return send_from_directory(filespath+path, filename)
 
-@app.route('/v1/<path:file>')
+@app.route('/v1/<path:path>')
 def send_js(path):
     return send_from_directory(filespath+'v1/', path)
 
