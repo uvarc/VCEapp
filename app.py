@@ -94,7 +94,7 @@ def buildimages(input_value, n_val, vid, table):
     
     for i,offset  in enumerate(frames):
         impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(offset)+'.png'    ## may need to be updated for final!
-        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(row+offset)+'.png'
+        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(offset)+'.png'
         ## Only add if file exists
         try:
             #encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
