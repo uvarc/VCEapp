@@ -71,6 +71,7 @@ def buildfig(input_value, n_val, vid):
 
     for i,offset  in enumerate(frames):
         impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(row+offset)+'.png'    ## may need to be updated for final!
+        
         try:
             whole=cv2.imread(impath)
             ax1[i].imshow(cv2.cvtColor(whole, cv2.COLOR_BGR2RGB))
@@ -93,10 +94,12 @@ def buildimages(input_value, n_val, vid, table):
     
     for i,offset  in enumerate(frames):
         impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(offset)+'.png'    ## may need to be updated for final!
+        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(row+offset)+'.png'
         ## Only add if file exists
         try:
-            encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
-            images.append(html.Td(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'})))
+            #encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
+            #images.append(html.Td(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'})))
+            images.append(html.Td(html.Img(src=impathdirect, style={'width': '100%'})))
             ## add labels
             if offset==0:
                 labels.append(html.Td('Selected Frame: ' + str(row)))
