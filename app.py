@@ -127,7 +127,7 @@ application.layout = html.Div(
                     children=[html.Div([timeline])],
                     type="circle",
                 ),
-    html.Div([
+    
     html.H5('Video Frames:'),
 
     
