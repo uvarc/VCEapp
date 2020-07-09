@@ -22,7 +22,8 @@ import base64
 import matplotlib.pyplot as plt
 import json
 
-
+static_image_route = '/static/'
+filespath='/project/DSone/jaj4zcf/Videos/'
 
 
 app = Flask(__name__)
