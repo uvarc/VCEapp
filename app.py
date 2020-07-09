@@ -104,8 +104,6 @@ PAGE_SIZE=10
 
 
 
-fig= buildfig('init',0, 1)
-out_url = fig_to_uri(fig)
 
 styles = {
     'pre': {
