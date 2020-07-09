@@ -31,7 +31,6 @@ app = Flask(__name__)
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
 
 
-
 videos=[]
 
 for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
@@ -60,12 +59,10 @@ def fig_to_uri(in_fig, close_all=True, **save_args):
     return "data:image/png;base64,{}".format(encoded)
 
 
-
-
 ## My function to Display Video Frames
 
 def buildfig(input_value, n_val, vid):    
-    frames=[-2,-1,0,1]
+    frames=[-1,0,1]
     
     fig, ax1 = plt.subplots(1,len(frames),figsize=(28,7))
 
@@ -82,6 +79,37 @@ def buildfig(input_value, n_val, vid):
             ax1[i].set_title('No Frame + ' + str(offset))
     
     return fig
+
+
+
+
+def buildimages(input_value, n_val, vid, table):    
+    frames=[i['index'] for i in table]  #[item for item in range(-10,10)] #[-3,-2,-1,0,1,2,3]
+    
+    row=n_val
+    images=[]
+    labels=[]
+    
+    for i,offset  in enumerate(frames):
+        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(offset)+'.png'    ## may need to be updated for final!
+        ## Only add if file exists
+        try:
+            encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
+            images.append(html.Td(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'})))
+            ## add labels
+            if offset==0:
+                labels.append(html.Td('Selected Frame: ' + str(row)))
+            else:
+                labels.append(html.Td('Frame: ' + str(offset)))
+        except:
+            'poo'
+   
+    images=html.Table([html.Tr(labels),html.Tr(images)])
+    
+    return images
+
+
+
 
 vidLabes=[]
 for vid in videos:
@@ -110,7 +138,7 @@ videoSelect=dcc.Dropdown(
         options=vidLabes,
         value=videos[0]
     )
-PAGE_SIZE=50
+PAGE_SIZE=10
 
 
 
@@ -126,24 +154,30 @@ styles = {
 }
 
 
-
-application.layout = html.Div([videoSelect,  
-    
+application.layout = html.Div(
+    [
+        html.H2('Deep VCE Results Explorer'),
+        html.H5('Choose a Video and Model Prediction Result to Begin:'),
+        videoSelect,  
+        html.H5('Select points or peaks to explore results:'),
     dcc.Loading(
                     id="loading-2",
                     children=[html.Div([timeline])],
                     type="circle",
                 ),
     html.Div([
+    html.H5('Image 0 represents the selected frame:'),
     html.Img(id='vid-cam',style={'width':'100%'}, src=out_url)], id='plot_div'),
-    html.Div([
-            dcc.Markdown("""
-                **Click Data**
+    
+    html.Div(id='imagecontainer', style={'display':'inline'}),
 
-                Click on points in the graph.
-            """),
-            html.Pre(id='click-data', style=styles['pre']),
-        ], className='three columns'),
+    html.Div([
+    html.Button('Previous', id='prev', n_clicks=0),
+    html.Button('Next', id='next', n_clicks=0),
+    html.P(id='test'),
+    ], style={'display':'inline'}), 
+    
+    html.H5('Use the Data Table Below to explore Results - rows are clickable.'),
     dash_table.DataTable(
     id='table',
     editable=True,
@@ -151,7 +185,9 @@ application.layout = html.Div([videoSelect,
     sort_action = 'native',
     filter_action = 'native',
     row_selectable='single',
-    columns=[{"name": i, "id": i} for i in labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes']].columns],
+    
+    columns=[{"name": i, "id": i} for i in labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']].columns],
+    #columns[-1][-1]={'name': 'small bowelabNormal', 'id': 'Prob. SB abNorm.'},
     dropdown={
             'TractSect1': {
                 'options': [
@@ -159,19 +195,38 @@ application.layout = html.Div([videoSelect,
                     for i in labelsdf['TractSect1'].unique()  #['colon', 'small bowell', 'stomach', 'pylorus']
                 ]
             }},    
-    data=labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes']].to_dict('records')
+    data=labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']].to_dict('records')
     ),
     html.Div(id='table-var', style={'display': 'none'}),  #where to store the table values.
-    html.Div(id='offset-var', style={'display': 'none'}),  #where to store the offset from table to index. 
+    html.Div(id='offset-var', children=[0], style={'display': 'none'}),  #where to store the offset from table to index. 
 
-    html.Div(id='frame-var', style={'display': 'none'})  #store the current frame 
-
+    html.Div(id='frame-var',children=[0], style={'display': 'none'}),  #store the current frame 
+    html.Div(id='prev-click',children=[0], style={'display': 'none'}),
+    
+    html.Div(id='num-prev',children=[0], style={'display': 'none'}),
+    html.Div(id='num-next',children=[0], style={'display': 'none'})
                       ])
 
+
+@application.callback(
+     Output('test', 'children'),
+    [Input('table', 'selected_rows'), Input('videoSelect', 'value')])
+def update_image_table(selected_rows, value):
+    if value[-2].isnumeric():
+        video=value[-2:]
+    else:
+        video=value[-1]
+    if selected_rows is None:
+        return 'no selection'
+    else:
+        return selected_rows
+
+
+# Get selected row
 @application.callback(
      Output('vid-cam', 'src'),
-    [Input('table', 'selected_rows'), Input('videoSelect', 'value')])
-def update_image(selected_rows, value):
+    [Input('table', 'selected_rows'), Input('videoSelect', 'value'), Input('offset-var', 'children') ])
+def update_image(selected_rows, value, offset):
     if value[-2].isnumeric():
         video=value[-2:]
     else:
@@ -188,33 +243,71 @@ def update_image(selected_rows, value):
     if selected_rows is None:
         impath='None'
         res='nothing'
-        fig= buildfig('poo', 0, video)
-        out_url = fig_to_uri(fig)      
+        return None
     else:
-        row=selected_rows[0]
+        row=selected_rows[0]+offset
         fig= buildfig('poo', row, video)
         #fig= returnGRADdiffFrame(0)
         out_url = fig_to_uri(fig)
-    return out_url
+        return out_url
 
 
-## ALL INPUTS TO TABLE
+@application.callback(
+    Output('imagecontainer', 'children'),
+    [Input('table', 'selected_rows'), Input('videoSelect', 'value'), Input('offset-var', 'children'), Input('table', 'derived_viewport_data') ])
+def update_image_div(selected_rows, value, offset, table):
+    if value[-2].isnumeric():
+        video=value[-2:]
+    else:
+        video=value[-1]
+    
+    if selected_rows is None:
+        impath='None'
+        res='nothing'
+        return None
+    else:
+        row=selected_rows[0]+offset
+        images = buildimages('poo', row, video, table)
+
+        return images
+
+    return 
+
+
+
+
+
+####
+### Front and Back Buttons
+
+@application.callback(
+    [Output('frame-var', 'children'), Output('num-next', 'children')],
+    [Input('timeline', 'clickData'), Input('next', 'n_clicks')],
+    [State('frame-var', 'children'),State('num-next', 'children') ])
+def update_output(clickData, n_next_clicks, frame,n_next_state):
+    
+    # Check to see if num of clicks changed
+    if n_next_clicks != n_next_state:
+        return [int(frame[0]) + 1], n_next_clicks
+    else: 
+        return [clickData['points'][0]['x']], n_next_clicks   
+    #except:
+       #return 0,0    
+
+
+## Change table selection based on current frame and using offset (table does not start at 0)
 @application.callback(
     Output('table', 'selected_rows'),
-    [Input('timeline', 'clickData'), Input('offset-var', 'children')])
-def display_click_data(clickData, offset):
-    
-    #dff = pd.read_json(jsonified_cleaned_data, orient='split')
-    
+    [Input('frame-var', 'children'), Input('offset-var', 'children')])
+def display_click_data(frame, offsetvar):
     try:    
         val=0
-        val=clickData['points'][0]['x']-offset
-        #val=[list(dff['index']).index(i) for i in [clickData['points'][0]['x']]]
+        val=frame[0]-offsetvar
         return [val] #[int(test['points'][0]['x'])]
     except:
         return [0]
     
-## ALL INPUTS TO TABLE
+## Set current page of table so that selected frame is visisble. 
 @application.callback(
     Output('table', 'page_current'),
     [Input('table', 'derived_virtual_selected_rows')])   # Input('table', "derived_virtual_selected_rows")
@@ -228,45 +321,12 @@ def display_click_data(sel_rows):
     except:
         return None
     
-@application.callback(Output('table', 'data'), [Input('table-var', 'children')])
-def update_table(jsonified_cleaned_data):
-    try:
-        dff = pd.read_json(jsonified_cleaned_data, orient='split')
-        return dff[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes']].to_dict('records')
-    except:
-        return None
-    
 
-
-@application.callback(Output('timeline', 'figure'), [Input('table-var', 'children')])
-def update_chart(jsonified_cleaned_data):
-    try:
-        labelsdf = pd.read_json(jsonified_cleaned_data, orient='split')
-
-        labelsdfBar=labelsdf[labelsdf['small bowelabNormal']>=.2]
-
-        labelsdfScat=labelsdf[labelsdf['sectNorm']=='small bowelabNormal']
-
-        colorsIdx = {'mouth': 'rgb(240,128,128)', 'stomach': 'rgb(255,160,122)', 'pylorus': 'rgb(100,149,237)', 'small bowel': 'rgb(147,112,219)', 'colon': 'rgb(205,133,63)'}
-        cols      = labelsdf['TractSect1'].map(colorsIdx)
-
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-        fig.add_bar(secondary_y=False, y=100*labelsdfBar['small bowelabNormal'], x=labelsdfBar['index'], marker_color='red', opacity=1, hoverinfo='none')
-        fig.add_scatter(secondary_y=True, mode='markers',y=labelsdfScat.Pathology, x=labelsdfScat['index'], text=labelsdfScat.time, customdata=labelsdfScat['small bowelabNormal'], marker=dict(size=3, color=cols), 
-                       hovertemplate="Pathology: %{y}<br>index: %{x}<br>time: %{text}<br> %{customdata}<extra></extra>   ")
-
-        fig.update_layout(plot_bgcolor='rgb(250,250,250)', yaxis_title="Probability of Abnormality (%)") #fig
-
-        return fig
-    except:
-        return None
-
-
-
-@application.callback([Output('table-var', 'children'), Output('offset-var', 'children')], [Input('videoSelect', 'value')])
+# Load new video. 
+@application.callback([Output('timeline', 'figure'), Output('table', 'data') , Output('offset-var', 'children'),Output('table-var', 'children')], 
+                      [Input('videoSelect', 'value')])
 def return_data(value):
-    print('test debug')
+
     vid=value
     try:
         labelsdf=pd.read_csv('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+str(vid)+'.csv')
@@ -275,30 +335,30 @@ def return_data(value):
     
     labelsdf=labelsdf.replace(np.nan, '', regex=True)
 
-    offsetvar=1 # labelsdf['index'].min() 
+    offsetvar=labelsdf['index'].min() 
     
-    #labelsdf=labelsdf[labelsdf['TractSect1']=='small bowel']
-
-        
-    #labelsdf['sectNorm']=''
-    #labelsdf.loc[labelsdf['Pathology']=='normal','sectNorm']=labelsdf['TractSect2']+'Normal'
-    #labelsdf.loc[labelsdf['Pathology']!='normal','sectNorm']=labelsdf['TractSect2']+'abNormal'
-    #labelsdf.loc[labelsdf['Pathology']=='normal','sectNorm']='Normal'
-    #labelsdf.loc[labelsdf['Pathology']!='normal','sectNorm']='abNormal'       
-     # more generally, this line would be
-     # json.dumps(cleaned_df)
-    return labelsdf.to_json(orient='split'), offsetvar    
-    
-@application.callback(
-    Output('click-data', 'children'),
-    [Input('timeline', 'clickData')])
-def display_click_data(clickData):
-    test=clickData
+    ## Update Timeline
     try:
-        return str(test['points'][0]['x']) + str(dash.__version__)
-    except:
-        return ''
+        labelsdfBar=labelsdf[labelsdf['small bowelabNormal']>=.3]
 
+        labelsdfScat=labelsdf[labelsdf['sectNorm']=='small bowelabNormal']
+
+        colorsIdx = {'mouth': 'rgb(240,128,128)', 'stomach': 'rgb(255,160,122)', 'pylorus': 'rgb(100,149,237)', 'small bowel': 'rgb(147,112,219)', 'colon': 'rgb(205,133,63)'}
+        cols      = labelsdf['TractSect1'].map(colorsIdx)
+
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+        fig.add_bar(secondary_y=False, y=100*labelsdfBar['small bowelabNormal'], width=1, x=labelsdfBar['index'],text=labelsdfBar['small bowelabNormal'], marker_color='red', opacity=1)
+        fig.add_scatter(secondary_y=True, mode='markers',y=labelsdfScat.Pathology, x=labelsdfScat['index'], text=labelsdfScat.time, customdata=labelsdfScat['small bowelabNormal'], marker=dict(size=3, color=cols), 
+                       hovertemplate="Pathology: %{y}<br>index: %{x}<br>time: %{text}<br>Prob. Abnormal: %{customdata}<extra></extra>   ")
+
+        fig.update_layout(plot_bgcolor='rgb(250,250,250)', yaxis_title="Probability of Abnormality (%)", margin={'t': 5, 'b':5}) #fig
+    
+    except:
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+   
+    labelsdf=labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']]
+    return fig, labelsdf.to_dict('records') , offsetvar, labelsdf.to_json(orient='split')      
 
 
 
