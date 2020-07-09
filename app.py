@@ -40,49 +40,6 @@ for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
         
 videos
 
-## Function to Convert Matplotlib Image
-
-
-def fig_to_uri(in_fig, close_all=True, **save_args):
-    # type: (plt.Figure) -> str
-    """
-    Save a figure as a URI
-    :param in_fig:
-    :return:
-    """
-    out_img = BytesIO()
-    in_fig.savefig(out_img, format='png', **save_args)
-    if close_all:
-        in_fig.clf()
-        plt.close('all')
-    out_img.seek(0)  # rewind file
-    encoded = base64.b64encode(out_img.read()).decode("ascii").replace("\n", "")
-    return "data:image/png;base64,{}".format(encoded)
-
-
-## My function to Display Video Frames
-
-def buildfig(input_value, n_val, vid):    
-    frames=[-1,0,1]
-    
-    fig, ax1 = plt.subplots(1,len(frames),figsize=(28,7))
-
-    row=n_val
-
-    for i,offset  in enumerate(frames):
-        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(row+offset)+'.png'    ## may need to be updated for final!
-        
-        try:
-            whole=cv2.imread(impath)
-            ax1[i].imshow(cv2.cvtColor(whole, cv2.COLOR_BGR2RGB))
-            ax1[i].set_title('Frame + ' + str(offset))
-        except:
-            #ax1[i].imshow(cv2.cvtColor(whole, cv2.COLOR_BGR2RGB))
-            ax1[i].set_title('No Frame + ' + str(offset))
-    
-    return fig
-
-
 
 
 def buildimages(input_value, n_val, vid, table):    
@@ -161,8 +118,7 @@ styles = {
 application.layout = html.Div(
     [
         html.H2('Deep VCE Results Explorer'),
-        html.Img(style={'width':'100%'}, src='/Videos/v1/1.png'),
-        html.Img(style={'width':'100%'}, src='/v1/1.png'),
+
         html.H5('Choose a Video and Model Prediction Result to Begin:'),
         videoSelect,  
         html.H5('Select points or peaks to explore results:'),
@@ -172,8 +128,8 @@ application.layout = html.Div(
                     type="circle",
                 ),
     html.Div([
-    html.H5('Image 0 represents the selected frame:'),
-    html.Img(id='vid-cam',style={'width':'100%'}, src=out_url)], id='plot_div'),
+    html.H5('Video Frames:'),
+
     
     html.Div(id='imagecontainer', style={'display':'inline'}),
 
@@ -227,35 +183,6 @@ def update_image_table(selected_rows, value):
     else:
         return selected_rows
 
-
-# Get selected row
-@application.callback(
-     Output('vid-cam', 'src'),
-    [Input('table', 'selected_rows'), Input('videoSelect', 'value'), Input('offset-var', 'children') ])
-def update_image(selected_rows, value, offset):
-    if value[-2].isnumeric():
-        video=value[-2:]
-    else:
-        video=value[-1]
-    # When the table is first rendered, `derived_virtual_data` and
-    # `derived_virtual_selected_rows` will be `None`. This is due to an
-    # idiosyncracy in Dash (unsupplied properties are always None and Dash
-    # calls the dependent callbacks when the component is first rendered).
-    # So, if `rows` is `None`, then the component was just rendered
-    # and its value will be the same as the component's dataframe.
-    # Instead of setting `None` in here, you could also set
-    # `derived_virtual_data=df.to_rows('dict')` when you initialize
-    # the component.
-    if selected_rows is None:
-        impath='None'
-        res='nothing'
-        return None
-    else:
-        row=selected_rows[0]+offset
-        fig= buildfig('poo', row, video)
-        #fig= returnGRADdiffFrame(0)
-        out_url = fig_to_uri(fig)
-        return out_url
 
 
 @application.callback(
