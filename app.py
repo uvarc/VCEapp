@@ -366,7 +366,7 @@ def return_data(value):
 
 
 @app.route('/vids/<path:filename>')
-def send_js(path,filename):
+def send_jss(path,filename):
     return send_from_directory(filespath+path, filename)
 
 @app.route('/v1/<path:file>')
