@@ -56,7 +56,7 @@ def buildimages(input_value, n_val, vid, table):
         try:
             #encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
             #images.append(html.Td(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'})))
-            images.append(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'}), className='zoom')))
+            images.append(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'}))))
 
             ## add labels
             if offset==0:
