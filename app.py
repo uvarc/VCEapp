@@ -147,7 +147,7 @@ table=html.Div(dash_table.DataTable(
         'maxWidth': 0,
         
     },
-    ),style={'width':'auto','overflow':'hidden'})
+    ),style={'width':'auto','overflow':'hidden', 'z-index':-1})
 
 
 styles = {
@@ -182,7 +182,7 @@ application.layout = html.Div(
     
     html.Div([
         html.Div( [
-            html.Div(id='imagecontainertop', style={'height':'80px','background':'pink'}),
+            html.Div(id='imagecontainertop', style={'height':'80px'}),
             html.Div(id='imagecontainer', style={'height':'1000px'}),
         ], id='imagecontainerwrap', style={'width':'100px','float':'left','display':'inline-block'}),
             table
