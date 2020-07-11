@@ -25,12 +25,16 @@ import json
 static_image_route = '/static/'
 filespath='/project/DSone/jaj4zcf/Videos/'
 
+import dash_table.FormatTemplate as FormatTemplate
+from dash_table.Format import Sign
+
+live=True
+
 
 app = Flask(__name__)
 
 
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
-
 
 videos=[]
 
@@ -39,6 +43,9 @@ for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
         videos.append(file[0:-4])
         
 videos
+
+
+
 
 
 
@@ -54,10 +61,12 @@ def buildimages(input_value, n_val, vid, table):
         impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(offset)+'.png'
         ## Only add if file exists
         try:
-            #encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
-            #images.append(html.Td(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'})))
-            images.append(html.Td(html.Div(html.Img(src=impathdirect, style={'width': '100%'}), className='zoom')))
-
+            if live==True:
+                images.append(html.Tr(html.Td(html.Div(html.Img(src=impathdirect, style={'width': '100%'}), className='zoom'))))
+            else:
+                encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
+                images.append(html.Tr(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'}), className='zoom'))))
+            
             ## add labels
             if offset==0:
                 labels.append(html.Td('Selected Frame: ' + str(row)))
@@ -66,7 +75,7 @@ def buildimages(input_value, n_val, vid, table):
         except:
             'poo'
    
-    images=html.Table([html.Tr(labels),html.Tr(images)])
+    images=html.Table(images,style={'width': '99%', 'float':'left'} )
     
     return images
 
@@ -84,16 +93,11 @@ labelsdf=labelsdf.reset_index()
 
 
 timeline=dcc.Graph(
-        id='timeline',
-        figure= px.scatter(data_frame=labelsdf, y='Pathology', x='index', color='TractSect1', hover_name="time" )
-    )
+        id='timeline' )
 
 graph_height=300
 
-figure= px.scatter(labelsdf, y='Pathology', x='index', color='TractSect1', hover_name="time", height=graph_height )
-figure.layout={
-                'clickmode': 'event+select'
-            }
+
 
 videoSelect=dcc.Dropdown(
         id='videoSelect',
@@ -103,7 +107,47 @@ videoSelect=dcc.Dropdown(
 PAGE_SIZE=10
 
 
+COLUMNS=[{"name": i, "id": i} for i in labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']].columns]
 
+COLUMNS[6].update({ "name":"Prob Abnormal",'type': 'numeric', 'format': FormatTemplate.percentage(1)})
+
+COLUMNS[3].update({ "presentation": "dropdown"})
+
+table=html.Div(dash_table.DataTable(
+    id='table',
+    editable=True,
+    page_size = PAGE_SIZE,
+    sort_action = 'native',
+    filter_action = 'native',
+    row_selectable='single',
+    data=labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']].to_dict('records'),
+    columns=COLUMNS,
+    #columns[-1][-1]={'name': 'small bowelabNormal', 'id': 'Prob. SB abNorm.'},
+    dropdown={
+            'TractSect1': {
+                'options': [
+                    {'label': i, 'value': i}
+                    for i in ['colon', 'small bowel', 'stomach', 'pylorus', 'esophagus']
+                ]
+            }},
+    style_data_conditional=[
+        {
+            'if': {
+                'filter_query': '{{small bowelabNormal}} > {}'.format(.5),
+            },
+            'backgroundColor': '#fff3f5',
+        },
+    ],
+    
+    style_cell={
+        'whiteSpace': 'normal',
+        'height': '40px',
+        'overflow': 'hidden',
+        'textOverflow': 'ellipsis',
+        'maxWidth': 0,
+        
+    },
+    ),style={'width':'auto','overflow':'hidden'})
 
 
 styles = {
@@ -117,7 +161,6 @@ styles = {
 application.layout = html.Div(
     [
         html.H2('Deep VCE Results Explorer'),
-
         html.H5('Choose a Video and Model Prediction Result to Begin:'),
         videoSelect,  
         html.H5('Select points or peaks to explore results:'),
@@ -127,10 +170,7 @@ application.layout = html.Div(
                     type="circle",
                 ),
     
-    html.H5('Video Frames:'),
-
     
-    html.Div(id='imagecontainer', style={'display':'inline'}),
 
     html.Div([
     html.Button('Previous', id='prev', n_clicks=0),
@@ -139,25 +179,32 @@ application.layout = html.Div(
     ], style={'display':'inline'}), 
     
     html.H5('Use the Data Table Below to explore Results - rows are clickable.'),
-    dash_table.DataTable(
-    id='table',
-    editable=True,
-    page_size = PAGE_SIZE,
-    sort_action = 'native',
-    filter_action = 'native',
-    row_selectable='single',
     
-    columns=[{"name": i, "id": i} for i in labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']].columns],
-    #columns[-1][-1]={'name': 'small bowelabNormal', 'id': 'Prob. SB abNorm.'},
-    dropdown={
-            'TractSect1': {
-                'options': [
-                    {'label': i, 'value': i}
-                    for i in labelsdf['TractSect1'].unique()  #['colon', 'small bowell', 'stomach', 'pylorus']
-                ]
-            }},    
-    data=labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']].to_dict('records')
-    ),
+    html.Div([
+        html.Div( [
+            html.Div(id='imagecontainertop', style={'height':'80px','background':'pink'}),
+            html.Div(id='imagecontainer', style={'height':'1000px'}),
+        ], id='imagecontainerwrap', style={'width':'100px','float':'left','display':'inline-block'}),
+            table
+        ],
+        style={'display':'inline-block', 'width':'100%'}),
+        
+    dcc.Slider(
+        id='imSize',
+        min=100,
+        max=512,
+        step=1,
+        value=100,
+    ),  
+    
+    dcc.Slider(
+        id='num_rows',
+        min=3,
+        max=20,
+        step=1,
+        value=10,
+    ), 
+        
     html.Div(id='table-var', style={'display': 'none'}),  #where to store the table values.
     html.Div(id='offset-var', children=[0], style={'display': 'none'}),  #where to store the offset from table to index. 
 
@@ -184,6 +231,7 @@ def update_image_table(selected_rows, value):
 
 
 
+
 @application.callback(
     Output('imagecontainer', 'children'),
     [Input('table', 'selected_rows'), Input('videoSelect', 'value'), Input('offset-var', 'children'), Input('table', 'derived_viewport_data') ])
@@ -198,7 +246,10 @@ def update_image_div(selected_rows, value, offset, table):
         res='nothing'
         return None
     else:
-        row=selected_rows[0]+offset
+        try:
+            row=selected_rows[0]+offset
+        except:
+            row=0
         images = buildimages('poo', row, video, table)
 
         return images
@@ -254,7 +305,25 @@ def display_click_data(sel_rows):
         return None
     
 
-# Load new video. 
+@application.callback(
+    [Output('table', 'style_data'), Output('imagecontainerwrap', 'style')],
+    [Input('imSize', 'value')])   # Input('table', "derived_virtual_selected_rows")
+def tablepicsize(value):
+    
+    cellwidth=str(value)+'px'
+    style_cell={'whiteSpace': 'normal', 'height': cellwidth} 
+    style_wrap={'width':cellwidth,'float':'left','display':'inline-block'}
+    
+    return style_cell, style_wrap
+
+@application.callback(
+    Output('table', 'page_size'),
+    [Input('num_rows', 'value')])   # Input('table', "derived_virtual_selected_rows")
+def pages(value):
+    return value
+
+
+
 @application.callback([Output('timeline', 'figure'), Output('table', 'data') , Output('offset-var', 'children'),Output('table-var', 'children')], 
                       [Input('videoSelect', 'value')])
 def return_data(value):
@@ -291,6 +360,8 @@ def return_data(value):
    
     labelsdf=labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']]
     return fig, labelsdf.to_dict('records') , offsetvar, labelsdf.to_json(orient='split')      
+
+
 
 
 
