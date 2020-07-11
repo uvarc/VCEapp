@@ -4,13 +4,13 @@ display : block !important;
 
 .zoom {
   padding: 0px;
-  transition: transform .2s; /* Animation */
+  transition: transform .05s; /* Animation */
   width: 100%;
   margin: 0 auto;
 }
 
 .zoom:hover {
   z-index:"10";
-  transform: scale(2.5); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+  transform: scale(4); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
   transform-origin: left;
 }
