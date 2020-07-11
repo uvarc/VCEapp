@@ -138,7 +138,7 @@ table=html.Div(dash_table.DataTable(
             'backgroundColor': '#fff3f5',
         },
     ],
-    
+    style_table = {'z-index':-1},
     style_cell={
         'whiteSpace': 'normal',
         'height': '40px',
