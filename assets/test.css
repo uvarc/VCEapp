@@ -4,7 +4,6 @@ display : block !important;
 
 .zoom {
   padding: 10px;
-  background-color: green;
   transition: transform .2s; /* Animation */
   width: 100%;
   margin: 0 auto;
