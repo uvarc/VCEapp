@@ -65,10 +65,10 @@ def buildTopImage(center_frame, n_images, vid):
         ## Only add if file exists
         try:
             if live==True:
-                images.append(html.Td(html.Div(html.Img(src=impathdirect, style={'max-width': '250px','width': '100%'}), className='zoom')))
+                images.append(html.Td(html.Div(html.Img(src=impathdirect, style={'max-width': '250px','width': '100%'}), className='zoomlow')))
             else:
                 encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
-                images.append(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'max-width': '250px','width': '100%'}), className='zoom')))
+                images.append(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'max-width': '250px','width': '100%'}), className='zoomlow')))
             
             ## add labels
             if offset==0:
@@ -421,15 +421,20 @@ def return_data(value):
         #fig.add_scatter(secondary_y=True, mode='markers',y=labelsdfScat.Pathology, x=labelsdfScat['index'], text=labelsdfScat.time, customdata=labelsdfScat['small bowelabNormal'], marker=dict(size=3, color=cols), 
         #               hovertemplate="Pathology: %{y}<br>index: %{x}<br>time: %{text}<br>Prob. Abnormal: %{customdata}<extra></extra>   ")
         #fig.update_layout(plot_bgcolor='rgb(250,250,250)', yaxis_title="Probability of Abnormality (%)", margin={'t': 5, 'b':5}) #fig
+        znumsprob=np.array(list(labelsdf['small bowelabNormal']))
+        xindex=list(labelsdf['index'])
+        znumsprob[znumsprob<=0.2]=None
+
         fig = go.Figure()
         fig.add_trace(go.Heatmap(
-            z=labelsdf['small bowelabNormal'],
-            x=labelsdf['index'],
-            y=np.ones(len(labelsdf['index'])),
-            colorscale='reds', showscale=False) )
-        fig.update_yaxes(showticklabels=False)
-        fig.update_xaxes(showticklabels=False)
-        fig.update_layout(margin={'t': 5, 'b':5, 'l':0,'r':0}, height=70)
+              z=znumsprob, 
+              x=xindex,
+              y=np.ones(len(xindex)),
+              colorscale='reds', showscale=False,zmin=0, zmax=1, hoverongaps = False) )
+        fig.update_layout(margin={'t': 5, 'b':5, 'l':0,'r':0}, height=70, plot_bgcolor='white')
+        fig.update_yaxes(showticklabels=False, gridcolor=None)
+        fig.update_xaxes(showticklabels=False, gridcolor=None)
+
     except:
         fig = make_subplots(specs=[[{"secondary_y": True}]])
    
