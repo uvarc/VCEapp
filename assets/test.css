@@ -26,5 +26,4 @@ display : block !important;
 .zoomlow:hover {
   z-index:"10";
   transform: scale(1.5); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
-  transform-origin: left;
 }
