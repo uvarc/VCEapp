@@ -35,7 +35,6 @@ app = Flask(__name__)
 
 
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
-
 videos=[]
 
 for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
@@ -45,14 +44,47 @@ for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
 videos
 
 
+def buildTopImage(center_frame, n_images, vid):    
+    if n_images[0]=='1':
+        frames=[0]
+    if n_images=='3':
+        frames=[-1,0,1]
+    if n_images=='5':
+        frames=[-2,-1,0,1,2]
+    if n_images=='7':
+        frames=[-3,-2,-1,0,1,2,3]
+        
+    images=[]
+    labels=[]
+    
+    for i,offset  in enumerate(frames):
+        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(int(center_frame) + offset)+'.png'    ## may need to be updated for final!
+        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(center_frame + offset)+'.png'
+        ## Only add if file exists
+        try:
+            if live==True:
+                images.append(html.Td(html.Div(html.Img(src=impathdirect, style={'max-width': '250px','width': '100%'}), className='zoom')))
+            else:
+                encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
+                images.append(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'max-width': '250px','width': '100%'}), className='zoom')))
+            
+            ## add labels
+            if offset==0:
+                labels.append(html.Td('Selected Frame: ' + str(center_frame)))
+            else:
+                labels.append(html.Td('Frame: ' + str(center_frame + offset)))
+        except:
+            'poo'
+   
+    image_table=html.Table(html.Tr(images),style={'text-align':'center','margin':'auto'} )
+    
+    return image_table
 
 
 
-
-def buildimages(input_value, n_val, vid, table):    
+def buildimages(vid, table):    
     frames=[i['index'] for i in table]  #[item for item in range(-10,10)] #[-3,-2,-1,0,1,2,3]
     
-    row=n_val
     images=[]
     labels=[]
     
@@ -138,7 +170,7 @@ table=html.Div(dash_table.DataTable(
             'backgroundColor': '#fff3f5',
         },
     ],
-    style_table = {'z-index':-1},
+    
     style_cell={
         'whiteSpace': 'normal',
         'height': '40px',
@@ -147,7 +179,7 @@ table=html.Div(dash_table.DataTable(
         'maxWidth': 0,
         
     },
-    ),style={'width':'auto','overflow':'hidden', 'z-index':-1})
+    ),style={'width':'auto','overflow':'hidden'})
 
 
 styles = {
@@ -164,12 +196,29 @@ application.layout = html.Div(
         html.H5('Choose a Video and Model Prediction Result to Begin:'),
         videoSelect,  
         html.H5('Select points or peaks to explore results:'),
+    html.Div(id='scrub_display', style={'display':'inline-block', 'width':'99%', 'margin':'auto'}),
     dcc.Loading(
                     id="loading-2",
-                    children=[html.Div([timeline])],
+                    children=[html.Div([timeline], style={'max-height': '65px'})],
                     type="circle",
                 ),
-    
+    dcc.Slider(
+        id='scrub_frame',
+        min=0,
+        max=labelsdf.shape[1],
+        step=1,
+        value=0,
+    ), 
+    dcc.Dropdown(
+        id='n_images',
+        options=[
+            {'label': '1', 'value': '1'},
+            {'label': '3', 'value': '3'},
+            {'label': '5', 'value': '5'},
+            {'label': '7', 'value': '7'}
+        ],
+        value='1'
+    ),
     
 
     html.Div([
@@ -212,7 +261,10 @@ application.layout = html.Div(
     html.Div(id='prev-click',children=[0], style={'display': 'none'}),
     
     html.Div(id='num-prev',children=[0], style={'display': 'none'}),
-    html.Div(id='num-next',children=[0], style={'display': 'none'})
+    html.Div(id='num-next',children=[0], style={'display': 'none'}),
+        
+    html.Div(id='abnormal_probs',children=[0], style={'display': 'none'}),
+    html.P(id='abnormals',children=[0])   
                       ])
 
 
@@ -234,31 +286,28 @@ def update_image_table(selected_rows, value):
 
 @application.callback(
     Output('imagecontainer', 'children'),
-    [Input('table', 'selected_rows'), Input('videoSelect', 'value'), Input('offset-var', 'children'), Input('table', 'derived_viewport_data') ])
-def update_image_div(selected_rows, value, offset, table):
+    [ Input('videoSelect', 'value'), Input('table', 'derived_viewport_data') ])
+def update_image_div(value, table):
     if value[-2].isnumeric():
         video=value[-2:]
     else:
         video=value[-1]
     
-    if selected_rows is None:
-        impath='None'
-        res='nothing'
-        return None
-    else:
-        try:
-            row=selected_rows[0]+offset
-        except:
-            row=0
-        images = buildimages('poo', row, video, table)
-
+    try:
+        images = buildimages(video, table)
         return images
+    except:
+        return None
 
-    return 
-
-
-
-
+@application.callback(
+    Output('scrub_display', 'children'),
+    [Input('scrub_frame', 'value'), Input('videoSelect', 'value'), Input('n_images', 'value')])
+def update_image_div(center_frame, vid, n_images):
+    if vid[-2].isnumeric():
+        vid=vid[-2:]
+    else:
+        vid=vid[-1]
+    return buildTopImage(center_frame, n_images, vid)
 
 ####
 ### Front and Back Buttons
@@ -280,15 +329,19 @@ def update_output(clickData, n_next_clicks, frame,n_next_state):
 
 ## Change table selection based on current frame and using offset (table does not start at 0)
 @application.callback(
-    Output('table', 'selected_rows'),
-    [Input('frame-var', 'children'), Input('offset-var', 'children')])
-def display_click_data(frame, offsetvar):
+    Output('scrub_frame', 'value'),
+    [Input('timeline', 'clickData')])
+def display_click_data(clickData):
     try:    
-        val=0
-        val=frame[0]-offsetvar
-        return [val] #[int(test['points'][0]['x'])]
+        val=clickData['points'][0]['x']
+        return val #[int(test['points'][0]['x'])]
     except:
-        return [0]
+        return 0
+
+    
+    
+    
+    
     
 ## Set current page of table so that selected frame is visisble. 
 @application.callback(
@@ -322,9 +375,24 @@ def tablepicsize(value):
 def pages(value):
     return value
 
+## Callback to get abnormal frames - by threshold. 
+
+@application.callback(
+    Output('abnormals', 'children'),
+    [Input('abnormal_probs', 'children')])   # Input('table', "derived_virtual_selected_rows")
+def return_abnormalframes(indexes):
+    indexes=pd.read_json(indexes)
+    test=indexes[indexes['small bowelabNormal']>.9]['index'].to_json()
+    return test
 
 
-@application.callback([Output('timeline', 'figure'), Output('table', 'data') , Output('offset-var', 'children'),Output('table-var', 'children')], 
+### Callback must
+
+
+@application.callback([Output('timeline', 'figure'), 
+                       Output('table', 'data') , Output('offset-var', 'children'),Output('table-var', 'children'),
+                       Output('scrub_frame', 'min') , Output('scrub_frame', 'max'), 
+                       Output('abnormal_probs', 'children')], 
                       [Input('videoSelect', 'value')])
 def return_data(value):
 
@@ -340,28 +408,34 @@ def return_data(value):
     
     ## Update Timeline
     try:
-        labelsdfBar=labelsdf[labelsdf['small bowelabNormal']>=.3]
+        #labelsdfBar=labelsdf[labelsdf['small bowelabNormal']>=.3]
 
-        labelsdfScat=labelsdf[labelsdf['sectNorm']=='small bowelabNormal']
+        #labelsdfScat=labelsdf[labelsdf['sectNorm']=='small bowelabNormal']
 
-        colorsIdx = {'mouth': 'rgb(240,128,128)', 'stomach': 'rgb(255,160,122)', 'pylorus': 'rgb(100,149,237)', 'small bowel': 'rgb(147,112,219)', 'colon': 'rgb(205,133,63)'}
-        cols      = labelsdf['TractSect1'].map(colorsIdx)
-
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-        fig.add_bar(secondary_y=False, y=100*labelsdfBar['small bowelabNormal'], width=1, x=labelsdfBar['index'],text=labelsdfBar['small bowelabNormal'], marker_color='red', opacity=1)
-        fig.add_scatter(secondary_y=True, mode='markers',y=labelsdfScat.Pathology, x=labelsdfScat['index'], text=labelsdfScat.time, customdata=labelsdfScat['small bowelabNormal'], marker=dict(size=3, color=cols), 
-                       hovertemplate="Pathology: %{y}<br>index: %{x}<br>time: %{text}<br>Prob. Abnormal: %{customdata}<extra></extra>   ")
-
-        fig.update_layout(plot_bgcolor='rgb(250,250,250)', yaxis_title="Probability of Abnormality (%)", margin={'t': 5, 'b':5}) #fig
-    
+        #colorsIdx = {'mouth': 'rgb(240,128,128)', 'stomach': 'rgb(255,160,122)', 'pylorus': 'rgb(100,149,237)', 'small bowel': 'rgb(147,112,219)', 'colon': 'rgb(205,133,63)'}
+        #cols      = labelsdf['TractSect1'].map(colorsIdx)
+        #fig = make_subplots(specs=[[{"secondary_y": True}]])
+        #fig.add_bar(secondary_y=False, y=100*labelsdfBar['small bowelabNormal'], width=1, x=labelsdfBar['index'],text=labelsdfBar['small bowelabNormal'], marker_color='red', opacity=1)
+        #fig.add_scatter(secondary_y=True, mode='markers',y=labelsdfScat.Pathology, x=labelsdfScat['index'], text=labelsdfScat.time, customdata=labelsdfScat['small bowelabNormal'], marker=dict(size=3, color=cols), 
+        #               hovertemplate="Pathology: %{y}<br>index: %{x}<br>time: %{text}<br>Prob. Abnormal: %{customdata}<extra></extra>   ")
+        #fig.update_layout(plot_bgcolor='rgb(250,250,250)', yaxis_title="Probability of Abnormality (%)", margin={'t': 5, 'b':5}) #fig
+        fig = go.Figure()
+        fig.add_trace(go.Heatmap(
+            z=labelsdf['small bowelabNormal'],
+            x=labelsdf['index'],
+            y=np.ones(len(labelsdf['index'])),
+            colorscale='reds', showscale=False) )
+        fig.update_yaxes(showticklabels=False)
+        fig.update_xaxes(showticklabels=False)
+        fig.update_layout(margin={'t': 5, 'b':5, 'l':0,'r':0}, height=70)
     except:
         fig = make_subplots(specs=[[{"secondary_y": True}]])
    
     labelsdf=labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']]
-    return fig, labelsdf.to_dict('records') , offsetvar, labelsdf.to_json(orient='split')      
-
-
+    min_index=labelsdf['index'].min()
+    max_index=labelsdf['index'].max()
+    indexes=labelsdf[['index', 'small bowelabNormal']]
+    return fig, labelsdf.to_dict('records') , offsetvar, labelsdf.to_json(orient='split'), min_index, max_index, indexes.to_json()   
 
 
 
