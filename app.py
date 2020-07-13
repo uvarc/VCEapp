@@ -16,6 +16,8 @@ from dash.dependencies import Input, Output, State
 import plotly
 from plotly.subplots import make_subplots
 import plotly_express as px
+import plotly.graph_objects as go
+
 
 from io import BytesIO
 import base64
