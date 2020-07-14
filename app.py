@@ -314,31 +314,29 @@ def update_image_div(center_frame, vid, n_images):
 ####
 ### Front and Back Buttons
 
-@application.callback(
-    [Output('frame-var', 'children'), Output('num-next', 'children')],
-    [Input('timeline', 'clickData'), Input('next', 'n_clicks')],
-    [State('frame-var', 'children'),State('num-next', 'children') ])
-def update_output(clickData, n_next_clicks, frame,n_next_state):
-    
-    # Check to see if num of clicks changed
-    if n_next_clicks != n_next_state:
-        return [int(frame[0]) + 1], n_next_clicks
-    else: 
-        return [clickData['points'][0]['x']], n_next_clicks   
-    #except:
-       #return 0,0    
+
 
 
 ## Change table selection based on current frame and using offset (table does not start at 0)
 @application.callback(
-    Output('scrub_frame', 'value'),
-    [Input('timeline', 'clickData')])
-def display_click_data(clickData):
+    [Output('scrub_frame', 'value'), Output('num-next', 'children')],
+    [Input('timeline', 'clickData'), Input('next', 'n_clicks'), Input('abnormals', 'children')],
+    [State('scrub_frame', 'value'), State('num-next', 'children') ])
+def display_click_data(clickData, n_next_clicks, abnormals,  frame, n_next_state):
+    
+    abnormals=json.loads(abnormals)
+    if n_next_clicks != n_next_state:
+        inindex=np.where(np.array(abnormals)>frame)[0][0]
+        
+        return abnormals[inindex], n_next_clicks
+    
+    
     try:    
         val=clickData['points'][0]['x']
         return val #[int(test['points'][0]['x'])]
+    
     except:
-        return 0
+        return 0, o 
 
     
     
@@ -383,10 +381,14 @@ def pages(value):
     Output('abnormals', 'children'),
     [Input('abnormal_probs', 'children')])   # Input('table', "derived_virtual_selected_rows")
 def return_abnormalframes(indexes):
-    indexes=pd.read_json(indexes)
-    test=indexes[indexes['small bowelabNormal']>.9]['index'].to_json()
-    return test
-
+    
+    try: 
+        indexes=pd.read_json(indexes)
+    
+        test=json.dumps(list(indexes[indexes['small bowelabNormal']>.9]['index']))
+        return test
+    except:
+        return 0
 
 ### Callback must
 
