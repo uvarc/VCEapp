@@ -30,6 +30,7 @@ filespath='/project/DSone/jaj4zcf/Videos/'
 import dash_table.FormatTemplate as FormatTemplate
 from dash_table.Format import Sign
 
+from dash.exceptions import PreventUpdate
 live=True
 
 
@@ -37,6 +38,8 @@ app = Flask(__name__)
 
 
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
+
+
 videos=[]
 
 for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
@@ -224,8 +227,9 @@ application.layout = html.Div(
     
 
     html.Div([
-    html.Button('Previous', id='prev', n_clicks=0),
-    html.Button('Next', id='next', n_clicks=0),
+    html.Button('Previous Frame', id='prev', n_clicks=0),
+    html.Button('Next Frame', id='next', n_clicks=0),
+    html.Button('Next Abnormality', id='next-ab', n_clicks=0),
     html.P(id='test'),
     ], style={'display':'inline'}), 
     
@@ -319,24 +323,47 @@ def update_image_div(center_frame, vid, n_images):
 
 ## Change table selection based on current frame and using offset (table does not start at 0)
 @application.callback(
-    [Output('scrub_frame', 'value'), Output('num-next', 'children')],
-    [Input('timeline', 'clickData'), Input('next', 'n_clicks'), Input('abnormals', 'children')],
-    [State('scrub_frame', 'value'), State('num-next', 'children') ])
-def display_click_data(clickData, n_next_clicks, abnormals,  frame, n_next_state):
+    Output('scrub_frame', 'value'),
+    [Input('timeline', 'clickData'), Input('next', 'n_clicks'),Input('prev', 'n_clicks'),Input('next-ab', 'n_clicks'), Input('abnormals', 'children')],
+    [State('scrub_frame', 'value')])
+def display_click_data(clickData, next_n_clicks,prev_n_clicks, next_ab_n_clicks, abnormals,  frame):
+    ctx = dash.callback_context
+
+    if not ctx.triggered:
+        button_id = 'No clicks yet'
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
-    abnormals=json.loads(abnormals)
-    if n_next_clicks != n_next_state:
-        inindex=np.where(np.array(abnormals)>frame)[0][0]
-        
-        return abnormals[inindex], n_next_clicks
-    
-    
-    try:    
-        val=clickData['points'][0]['x']
-        return val #[int(test['points'][0]['x'])]
-    
-    except:
-        return 0, o 
+    if button_id == 'next-ab': 
+        try:
+            abnormals=json.loads(abnormals)
+            inindex=np.where(np.array(abnormals)>frame)[0][0]
+            return abnormals[inindex]
+        except:
+            raise dash.exceptions.PreventUpdate 
+            
+    elif button_id == 'next':
+        try:    
+            val=frame+1
+            return val #[int(test['points'][0]['x'])]
+        except:
+            raise dash.exceptions.PreventUpdate
+            
+    elif button_id == 'prev':
+        try:    
+            val=frame-1
+            return val #[int(test['points'][0]['x'])]
+        except:
+            raise dash.exceptions.PreventUpdate
+            
+    elif button_id == 'timeline':
+        try:    
+            val=clickData['points'][0]['x']
+            return val #[int(test['points'][0]['x'])]
+        except:
+            raise dash.exceptions.PreventUpdate
+    else:
+        raise dash.exceptions.PreventUpdate
 
     
     
@@ -347,7 +374,7 @@ def display_click_data(clickData, n_next_clicks, abnormals,  frame, n_next_state
 @application.callback(
     Output('table', 'page_current'),
     [Input('table', 'derived_virtual_selected_rows')])   # Input('table', "derived_virtual_selected_rows")
-def display_click_data(sel_rows):
+def page_innate(sel_rows):
     
     try:
         if sel_rows[0]>3:
@@ -381,14 +408,16 @@ def pages(value):
     Output('abnormals', 'children'),
     [Input('abnormal_probs', 'children')])   # Input('table', "derived_virtual_selected_rows")
 def return_abnormalframes(indexes):
-    
-    try: 
+    try:
         indexes=pd.read_json(indexes)
-    
         test=json.dumps(list(indexes[indexes['small bowelabNormal']>.9]['index']))
         return test
     except:
-        return 0
+        raise PreventUpdate
+        
+    
+    
+
 
 ### Callback must
 
@@ -401,10 +430,8 @@ def return_abnormalframes(indexes):
 def return_data(value):
 
     vid=value
-    try:
-        labelsdf=pd.read_csv('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+str(vid)+'.csv')
-    except:
-        labelsdf=pd.read_csv('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+videos[0]+'.csv')
+    
+    labelsdf=pd.read_csv('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV/'+str(vid)+'.csv')
     
     labelsdf=labelsdf.replace(np.nan, '', regex=True)
 
@@ -444,8 +471,8 @@ def return_data(value):
     min_index=labelsdf['index'].min()
     max_index=labelsdf['index'].max()
     indexes=labelsdf[['index', 'small bowelabNormal']]
+    
     return fig, labelsdf.to_dict('records') , offsetvar, labelsdf.to_json(orient='split'), min_index, max_index, indexes.to_json()   
-
 
 
 @app.route('/vids/<path:path>')
