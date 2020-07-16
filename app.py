@@ -22,6 +22,7 @@ import plotly.graph_objects as go
 from io import BytesIO
 import base64
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import json
 
 static_image_route = '/static/'
@@ -39,7 +40,6 @@ app = Flask(__name__)
 
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
 
-
 videos=[]
 
 for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
@@ -49,7 +49,13 @@ for file in os.listdir('/project/DSone/jaj4zcf/Videos/ResultsSodiqCSV'):
 videos
 
 
-def buildTopImage(center_frame, n_images, vid):    
+cmap = mpl.cm.get_cmap('plasma')
+
+def colorFader(mix=0): #fade (linear interpolate) from color c1 (at mix=0) to c2 (mix=1)
+    return mpl.colors.to_hex(cmap(mix))
+    
+def buildTopImage(center_frame, n_images, vid):
+    import dash_html_components as html
     if n_images[0]=='1':
         frames=[0]
     if n_images=='3':
@@ -58,26 +64,24 @@ def buildTopImage(center_frame, n_images, vid):
         frames=[-2,-1,0,1,2]
     if n_images=='7':
         frames=[-3,-2,-1,0,1,2,3]
-        
+    max_image_width = str(round(100 * 1/int(n_images), 1))+'%'    
     images=[]
-    labels=[]
     
     for i,offset  in enumerate(frames):
-        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(int(center_frame) + offset)+'.png'    ## may need to be updated for final!
-        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(center_frame + offset)+'.png'
+        try:
+            picnum=int(center_frame) + offset
+        except:
+            picnum=center_frame+offset
+        
+        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(picnum)+'.png'    ## may need to be updated for final!
+        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(picnum)+'.png'
         ## Only add if file exists
         try:
             if live==True:
-                images.append(html.Td(html.Div(html.Img(src=impathdirect, style={'max-width': '250px','width': '100%'}), className='zoomlow')))
+                images.append(html.Td(html.Div(html.Img(src=impathdirect, style={'max-height': '250px', 'width':'100%'}), className='zoomlow')))
             else:
                 encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
-                images.append(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'max-width': '250px','width': '100%'}), className='zoomlow')))
-            
-            ## add labels
-            if offset==0:
-                labels.append(html.Td('Selected Frame: ' + str(center_frame)))
-            else:
-                labels.append(html.Td('Frame: ' + str(center_frame + offset)))
+                images.append(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'max-height': '250px', 'width':'100%'}), className='zoomlow')))
         except:
             'poo'
    
@@ -85,6 +89,49 @@ def buildTopImage(center_frame, n_images, vid):
     
     return image_table
 
+
+def buildTopTable(center_frame, n_images, abprobs):
+    center_frame=int(center_frame)
+    if n_images[0]=='1':
+        frames=[0]
+    if n_images=='3':
+        frames=[-1,0,1]
+    if n_images=='5':
+        frames=[-2,-1,0,1,2]
+    if n_images=='7':
+        frames=[-3,-2,-1,0,1,2,3]
+    max_image_width = str(round(99.5 * 1/int(n_images), 1))+'%'  
+    images=[]
+    labels=[]
+    probs=[]
+    
+    try:
+        for i,offset  in enumerate(frames):
+            ## Only add if file exists
+
+            if (center_frame+offset)>=0:
+                try:
+                    prob=abprobs[abprobs['index']==(center_frame+offset)]['small bowelabNormal'].reset_index(drop=True)[0]
+                except:
+                    prob=0
+                colval=colorFader(mix=prob)
+                images.append(html.Div(html.Div(style={'height':'20px', 'background-color':colval,
+                                                       'border-width': '2px','border-style': 'solid', 'border-color': 'white'}), 
+                                       style={'max-height': '10px', 'overflow':'hidden', 'max-width':max_image_width, 'width':'250px', 'display': 'inline-block'}))
+                
+                labelString=['Frame: '+str(center_frame+offset), html.Br(), '<br>Abnormal Prob: ' + str(round(prob,2))]
+                
+                labels.append(html.Div(html.P(labelString,style={'color':'black','font-size':'14px','height':'30px', 'background-color':'white','border-width': '2px','border-style': 'solid', 'border-color': 'white'}), 
+                                       style={'max-height': '30px', 'overflow':'hidden', 'max-width':max_image_width, 'width':'250px', 'display': 'inline-block'}))
+  
+        
+   
+        images=html.Div(images,style={'text-align':'center','margin':'0 auto'} )
+        labels=html.Div(labels,style={'text-align':'center','margin':'0 auto'} )
+        #probs=html.Div(probs,style={'text-align':'center','margin':'0 auto'} )
+        return html.Div([labels,images])
+    except:
+        return html.P(str(center_frame))
 
 
 def buildimages(vid, table):    
@@ -115,7 +162,6 @@ def buildimages(vid, table):
     images=html.Table(images,style={'width': '99%', 'float':'left'} )
     
     return images
-
 
 
 
@@ -196,12 +242,18 @@ styles = {
 
 
 application.layout = html.Div(
-    [
-        html.H2('Deep VCE Results Explorer'),
+    [   html.H2('Deep VCE Results Explorer'),
         html.H5('Choose a Video and Model Prediction Result to Begin:'),
         videoSelect,  
         html.H5('Select points or peaks to explore results:'),
-    html.Div(id='scrub_display', style={'display':'inline-block', 'width':'99%', 'margin':'auto'}),
+    html.Div(children=[
+        
+        
+        html.Div(id='scrub_table_display', style={'margin':'0 auto', 'width':'100%'}),
+        html.Div(id='scrub_display', style={'margin':'auto', 'width':'auto'})], 
+             
+             style={'margin':'0 auto', 'width':'100%'}),
+        
     dcc.Loading(
                     id="loading-2",
                     children=[html.Div([timeline], style={'max-height': '65px'})],
@@ -269,9 +321,9 @@ application.layout = html.Div(
     html.Div(id='num-prev',children=[0], style={'display': 'none'}),
     html.Div(id='num-next',children=[0], style={'display': 'none'}),
         
-    html.Div(id='abnormal_probs',children=[0], style={'display': 'none'}),
+    html.P(id='abnormal_probs',children=[0]),
     html.P(id='abnormals',children=[0])   
-                      ])
+                      ], style={'max-width':'100%'})
 
 
 @application.callback(
@@ -308,12 +360,23 @@ def update_image_div(value, table):
 @application.callback(
     Output('scrub_display', 'children'),
     [Input('scrub_frame', 'value'), Input('videoSelect', 'value'), Input('n_images', 'value')])
-def update_image_div(center_frame, vid, n_images):
+def update_scrub_div(center_frame, vid, n_images):
     if vid[-2].isnumeric():
         vid=vid[-2:]
     else:
         vid=vid[-1]
     return buildTopImage(center_frame, n_images, vid)
+
+@application.callback(
+    Output('scrub_table_display', 'children'),
+    [Input('scrub_frame', 'value'), Input('n_images', 'value'), Input('abnormal_probs', 'children')])
+def update_scrub_table_div(center_frame, n_images, abprobs):
+    try:
+        abprobs=pd.read_json(abprobs,orient='split')
+    except:
+        raise PreventUpdate
+        
+    return buildTopTable(center_frame, n_images, abprobs)
 
 ####
 ### Front and Back Buttons
@@ -409,8 +472,8 @@ def pages(value):
     [Input('abnormal_probs', 'children')])   # Input('table', "derived_virtual_selected_rows")
 def return_abnormalframes(indexes):
     try:
-        indexes=pd.read_json(indexes)
-        test=json.dumps(list(indexes[indexes['small bowelabNormal']>.9]['index']))
+        indexes=pd.read_json(indexes,orient='split')
+        test=json.dumps(list(indexes[indexes['small bowelabNormal']>.5]['index']))
         return test
     except:
         raise PreventUpdate
@@ -437,9 +500,12 @@ def return_data(value):
 
     offsetvar=labelsdf['index'].min() 
     
+    min_index=labelsdf['index'].min()
+    max_index=labelsdf['index'].max()
+    
     ## Update Timeline
     try:
-        #labelsdfBar=labelsdf[labelsdf['small bowelabNormal']>=.3]
+        labelsdfScatnew=labelsdf[labelsdf['small bowelabNormal']>=.3]
 
         #labelsdfScat=labelsdf[labelsdf['sectNorm']=='small bowelabNormal']
 
@@ -455,24 +521,35 @@ def return_data(value):
         znumsprob[znumsprob<=0.2]=None
 
         fig = go.Figure()
-        fig.add_trace(go.Heatmap(
-              z=znumsprob, 
-              x=xindex,
-              y=np.ones(len(xindex)),
-              colorscale='reds', showscale=False,zmin=0, zmax=1, hoverongaps = False) )
-        fig.update_layout(margin={'t': 5, 'b':5, 'l':0,'r':0}, height=70, plot_bgcolor='white')
+        fig.add_trace(go.Scatter(
+             mode='markers',
+              x=labelsdfScatnew['index'],
+              y=labelsdfScatnew['small bowelabNormal'],
+            marker_line_width=3,
+            
+             marker=dict(
+                showscale=False,
+                cmax=1,
+                cmin=0,
+                symbol='line-ns',
+                line_color=labelsdfScatnew['small bowelabNormal'],
+                
+                colorbar=dict(
+                    title="Abnormal Probabilities"
+                ) )))
+        fig.update_layout(margin={'t': 5, 'b':5, 'l':0,'r':0}, height=70, plot_bgcolor='white', legend=dict(orientation="h"))
         fig.update_yaxes(showticklabels=False, gridcolor=None)
-        fig.update_xaxes(showticklabels=False, gridcolor=None)
+        fig.update_xaxes(showticklabels=False, gridcolor=None, range=[min_index, max_index])
 
     except:
         fig = make_subplots(specs=[[{"secondary_y": True}]])
    
     labelsdf=labelsdf[['index','sectNorm', 'time', 'TractSect1', 'Pathology', 'Notes', 'small bowelabNormal']]
-    min_index=labelsdf['index'].min()
-    max_index=labelsdf['index'].max()
+
     indexes=labelsdf[['index', 'small bowelabNormal']]
     
-    return fig, labelsdf.to_dict('records') , offsetvar, labelsdf.to_json(orient='split'), min_index, max_index, indexes.to_json()   
+    return fig, labelsdf.to_dict('records') , offsetvar, labelsdf.to_json(orient='split'), min_index, max_index, indexes.to_json(orient='split')   
+
 
 
 @app.route('/vids/<path:path>')
