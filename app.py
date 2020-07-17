@@ -256,7 +256,7 @@ application.layout = html.Div(
         
     dcc.Loading(
                     id="loading-2",
-                    children=[html.Div([timeline], style={'max-height': '65px'})],
+                    children=[html.Div([timeline], style={'max-height': '100px'})],
                     type="circle",
                 ),
     dcc.Slider(
@@ -266,6 +266,17 @@ application.layout = html.Div(
         step=1,
         value=0,
     ), 
+
+    
+
+    html.Div([    
+    html.Button('Previous Set', id='prev_set', n_clicks=0, style={'display':'inline-block', 'vertical-align': 'middle'}),
+    html.Button('Previous Frame', id='prev', n_clicks=0, style={'display':'inline-block', 'vertical-align': 'middle'}),
+    html.Button('Next Frame', id='next', n_clicks=0, style={'display':'inline-block', 'vertical-align': 'middle'}),
+    html.Button('Next Set', id='next_set', n_clicks=0, style={'display':'inline-block', 'vertical-align': 'middle'}),
+    html.Button('Next Abnormality', id='next-ab', n_clicks=0, style={'display':'inline-block', 'vertical-align': 'middle'}),
+    html.Div([
+    html.Div(html.P('Number of Frames:'),style={'display':'inline-block', 'vertical-align': 'middle'}),
     dcc.Dropdown(
         id='n_images',
         options=[
@@ -274,17 +285,27 @@ application.layout = html.Div(
             {'label': '5', 'value': '5'},
             {'label': '7', 'value': '7'}
         ],
-        value='1'
-    ),
+        value='1',  style={'height': '30px','width': '70px','display':'inline-block', 'vertical-align': 'middle'}),
+        html.Div(style={'width':'80px', 'display':'inline-block', 'vertical-align': 'middle'}),
+        
+        html.Div(html.P('Abnormality Threshold:'),style={'display':'inline-block', 'vertical-align': 'middle'}),
+        dcc.Dropdown(
+        id='ab_thresh',
+        options=[
+            {'label': '.1', 'value': .1},
+            {'label': '.3', 'value': .3},
+            {'label': '.5', 'value': .5},
+            {'label': '.7', 'value': .7},
+            {'label': '.8', 'value': .8},
+            {'label': '.9', 'value': .9}
+        ],
+        value=.7,  style={'height': '30px', 'width': '70px','display':'inline-block','vertical-align': 'middle' },
+    ),], style={'display':'inline', 'float':'right', 'vertical-align': 'middle'}) 
     
-
-    html.Div([
-    html.Button('Previous Frame', id='prev', n_clicks=0),
-    html.Button('Next Frame', id='next', n_clicks=0),
-    html.Button('Next Abnormality', id='next-ab', n_clicks=0),
+    ], style={'display':'inline', 'vertical-align': 'middle'}), 
+    
+     
     html.P(id='test'),
-    ], style={'display':'inline'}), 
-    
     html.H5('Use the Data Table Below to explore Results - rows are clickable.'),
     
     html.Div([
@@ -387,9 +408,11 @@ def update_scrub_table_div(center_frame, n_images, abprobs):
 ## Change table selection based on current frame and using offset (table does not start at 0)
 @application.callback(
     Output('scrub_frame', 'value'),
-    [Input('timeline', 'clickData'), Input('next', 'n_clicks'),Input('prev', 'n_clicks'),Input('next-ab', 'n_clicks'), Input('abnormals', 'children')],
-    [State('scrub_frame', 'value')])
-def display_click_data(clickData, next_n_clicks,prev_n_clicks, next_ab_n_clicks, abnormals,  frame):
+    [Input('timeline', 'clickData'), Input('next', 'n_clicks'),Input('prev', 'n_clicks'),
+     Input('next_set', 'n_clicks'),Input('prev_set', 'n_clicks'),
+     Input('next-ab', 'n_clicks'), Input('abnormals', 'children')],
+    [State('scrub_frame', 'value'), State('n_images', 'value')])
+def diplay_table(clickData, next_n_clicks,prev_n_clicks, next_set, prev_set, next_ab_n_clicks, abnormals,  frame, n_images):
     ctx = dash.callback_context
 
     if not ctx.triggered:
@@ -418,7 +441,21 @@ def display_click_data(clickData, next_n_clicks,prev_n_clicks, next_ab_n_clicks,
             return val #[int(test['points'][0]['x'])]
         except:
             raise dash.exceptions.PreventUpdate
+    
+    elif button_id == 'next_set':
+        try:    
+            val=frame+int(n_images)
+            return val #[int(test['points'][0]['x'])]
+        except:
+            raise dash.exceptions.PreventUpdate
             
+    elif button_id == 'prev_set':
+        try:    
+            val=frame-int(n_images)
+            return val #[int(test['points'][0]['x'])]
+        except:
+            raise dash.exceptions.PreventUpdate
+    
     elif button_id == 'timeline':
         try:    
             val=clickData['points'][0]['x']
@@ -469,11 +506,11 @@ def pages(value):
 
 @application.callback(
     Output('abnormals', 'children'),
-    [Input('abnormal_probs', 'children')])   # Input('table', "derived_virtual_selected_rows")
-def return_abnormalframes(indexes):
+    [Input('abnormal_probs', 'children'), Input('ab_thresh', 'value')])   # Input('table', "derived_virtual_selected_rows")
+def return_abnormalframes(indexes, abthresh):
     try:
         indexes=pd.read_json(indexes,orient='split')
-        test=json.dumps(list(indexes[indexes['small bowelabNormal']>.5]['index']))
+        test=json.dumps(list(indexes[indexes['small bowelabNormal']>abthresh]['index']))
         return test
     except:
         raise PreventUpdate
@@ -489,8 +526,8 @@ def return_abnormalframes(indexes):
                        Output('table', 'data') , Output('offset-var', 'children'),Output('table-var', 'children'),
                        Output('scrub_frame', 'min') , Output('scrub_frame', 'max'), 
                        Output('abnormal_probs', 'children')], 
-                      [Input('videoSelect', 'value')])
-def return_data(value):
+                      [Input('videoSelect', 'value'), Input('ab_thresh', 'value')])
+def return_data(value, abthresh):
 
     vid=value
     
@@ -537,9 +574,22 @@ def return_data(value):
                 colorbar=dict(
                     title="Abnormal Probabilities"
                 ) )))
-        fig.update_layout(margin={'t': 5, 'b':5, 'l':0,'r':0}, height=70, plot_bgcolor='white', legend=dict(orientation="h"))
+        fig.update_layout(margin={'t': 10, 'b':5, 'l':0,'r':0}, height=90, plot_bgcolor='white', legend=dict(orientation="h"))
         fig.update_yaxes(showticklabels=False, gridcolor=None)
-        fig.update_xaxes(showticklabels=False, gridcolor=None, range=[min_index, max_index])
+        fig.update_xaxes(showticklabels=True, gridcolor=None, range=[min_index, max_index])
+        fig.add_shape(
+        # Line Horizontal
+            type="line",
+            x0=min_index,
+            y0=abthresh,
+            x1=max_index,
+            y1=abthresh,
+            line=dict(
+                color='rgba(0, 0, 0, 0.5)',
+                width=1,
+                dash="dot"
+            ),
+        )
 
     except:
         fig = make_subplots(specs=[[{"secondary_y": True}]])
