@@ -19,6 +19,6 @@ COPY ./nginx.conf /etc/nginx/sites-available/default
 COPY ./fileserve.conf /etc/nginx/sites-available/fileserve
 
 CMD ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-CMD ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/fileserve
+CMD ln -s /etc/nginx/sites-available/fileserve /etc/nginx/sites-enabled/fileserve
 
 CMD service nginx start && uwsgi -s /tmp/uwsgi.sock --chmod-socket=666 --manage-script-name --mount /=app:app
