@@ -21,4 +21,8 @@ COPY ./nginx.conf /etc/nginx/sites-available/default
 #CMD ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 #CMD ln -s /etc/nginx/sites-available/fileserve /etc/nginx/sites-enabled/fileserve
 
+
+RUN chgrp -R www-data /project/DSone/jaj4zcf/Videos/
+RUN chmod -R 750 /var/www/my-website.com/
+
 CMD service nginx start && uwsgi -s /tmp/uwsgi.sock --chmod-socket=666 --manage-script-name --mount /=app:app
