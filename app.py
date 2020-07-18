@@ -1,4 +1,5 @@
 from flask import Flask, send_from_directory
+from flask_compress import Compress
 
 import pandas as pd
 import numpy as np
@@ -34,9 +35,12 @@ from dash_table.Format import Sign
 from dash.exceptions import PreventUpdate
 live=True
 
+COMPRESS_MIMETYPES = ['text/html', 'text/css', 'text/xml', 'application/json', 'application/javascript', 'image/png']
+
 
 app = Flask(__name__)
 
+Compress(app)
 
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
 
@@ -609,10 +613,6 @@ def send_jss(path):
     path=path[0:pos]
     print('poop')
     return send_from_directory(filespath+path, filename)
-
-@app.route('/v1/<path:path>')
-def send_js(path):
-    return send_from_directory(filespath+'v1/', path)
 
 
 if __name__ == '__main__':
