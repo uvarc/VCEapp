@@ -10,3 +10,4 @@ dash_table
 plotly
 plotly_express 
 matplotlib
+flask-compress
