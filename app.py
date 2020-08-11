@@ -35,7 +35,7 @@ from dash_table.Format import Sign
 from dash.exceptions import PreventUpdate
 live=True
 
-COMPRESS_MIMETYPES = ['text/html', 'text/css', 'text/xml', 'application/json', 'application/javascript', 'image/png']
+COMPRESS_MIMETYPES = ['text/html', 'text/css', 'text/xml', 'application/json', 'application/javascript', 'image/png', 'image/jpg']
 
 
 app = Flask(__name__)
@@ -77,15 +77,15 @@ def buildTopImage(center_frame, n_images, vid):
         except:
             picnum=center_frame+offset
         
-        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(picnum)+'.png'    ## may need to be updated for final!
-        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(picnum)+'.png'
+        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(picnum)+'.jpg'    ## may need to be updated for final!
+        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(picnum)+'.jpg'
         ## Only add if file exists
         try:
             if live==True:
                 images.append(html.Td(html.Div(html.Img(src=impathdirect, style={'max-height': '250px', 'width':'100%'}), className='zoomlow')))
             else:
                 encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
-                images.append(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'max-height': '250px', 'width':'100%'}), className='zoomlow')))
+                images.append(html.Td(html.Div(html.Img(src='data:image/jpg;base64,{}'.format(encoded_image), style={'max-height': '250px', 'width':'100%'}), className='zoomlow')))
         except:
             'poo'
    
@@ -145,15 +145,15 @@ def buildimages(vid, table):
     labels=[]
     
     for i,offset  in enumerate(frames):
-        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(offset)+'.png'    ## may need to be updated for final!
-        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(offset)+'.png'
+        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(offset)+'.jpg'    ## may need to be updated for final!
+        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(offset)+'.jpg'
         ## Only add if file exists
         try:
             if live==True:
                 images.append(html.Tr(html.Td(html.Div(html.Img(src=impathdirect, style={'width': '100%'}), className='zoom'))))
             else:
                 encoded_image = base64.b64encode(open(impath, 'rb').read()).decode("ascii").replace("\n", "")
-                images.append(html.Tr(html.Td(html.Div(html.Img(src='data:image/png;base64,{}'.format(encoded_image), style={'width': '100%'}), className='zoom'))))
+                images.append(html.Tr(html.Td(html.Div(html.Img(src='data:image/jpg;base64,{}'.format(encoded_image), style={'width': '100%'}), className='zoom'))))
             
             ## add labels
             if offset==0:
