@@ -78,7 +78,7 @@ def buildTopImage(center_frame, n_images, vid):
             picnum=center_frame+offset
         
         impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(picnum)+'.jpg'    ## may need to be updated for final!
-        impathdirect='/static/v'+str(vid)[-2:]+'/'+str(picnum)+'.jpg'
+        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(picnum)+'.jpg'
         ## Only add if file exists
         try:
             if live==True:
@@ -146,7 +146,7 @@ def buildimages(vid, table):
     
     for i,offset  in enumerate(frames):
         impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(offset)+'.jpg'    ## may need to be updated for final!
-        impathdirect='/static/v'+str(vid)[-2:]+'/'+str(offset)+'.jpg'
+        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(offset)+'.jpg'
         ## Only add if file exists
         try:
             if live==True:
