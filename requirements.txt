@@ -1,7 +1,7 @@
 Flask
 pandas 
 numpy==1.18.0
-skbuild
+scikit-build
 opencv-python
 dash
 dash_html_components
