@@ -11,3 +11,4 @@ plotly
 plotly_express 
 matplotlib
 flask-compress
+dash_extensions
