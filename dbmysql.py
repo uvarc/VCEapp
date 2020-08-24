@@ -117,8 +117,8 @@ def scan_for_new_videos():
         allfiles.sort()
         df=pd.DataFrame(columns=['index_', 'tract_section', 'pathology', 'notes'])
         df['index_']=allfiles
-        df['tract_section']=sectOptions[0]
-        df['pathology']=abnormalOptions[0]
+        df['tract_section']=config.sectOptions[0]
+        df['pathology']=config.abnormalOptions[0]
         df['notes']=''
 
         #find video folder name
