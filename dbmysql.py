@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.types import INT, VARCHAR
+
 import pymysql
 import config
 import numpy as np
