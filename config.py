@@ -1,4 +1,4 @@
-live=False
+live=True
 
 abnormalOptions=['normal','mass','edemous villi', 'angioectasia', 'ulcer']
 sectOptions=['pre-stomach','stomach', 'small bowel', 'colon']
