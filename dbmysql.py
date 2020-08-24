@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+from sqlalchemy.types import INT, VARCHAR
 import pymysql
 import config
 import numpy as np
@@ -125,12 +126,15 @@ def scan_for_new_videos():
         index=vid_folder[len(vid_folder)::-1].find('/')
         vname=vid_folder[-index:]
 
-        df.to_sql(vname,conn,if_exists='fail', 
-                  dtype={'index_': 'INTEGER PRIMARY KEY', 
-                         'tract_section': 'TEXT',
-                         'pathology':'TEXT',
-                         'notes':'TEXT'}, index=False)
-
+        df.to_sql(vname,conn,if_exists='replace', 
+                  dtype={'index_': INT, 
+                         'tract_section': VARCHAR,
+                         'pathology':VARCHAR,
+                         'notes':VARCHAR}, index=False)
+        conn.execute('''ALTER TABLE {}
+                    ADD PRIMARY KEY(index_);'''.format(vname))
+        
+    
 
     #Update Progress Table
 
