@@ -3,6 +3,7 @@ import pymysql
 import config
 import numpy as np
 import pandas as pd
+import os
 
 sqlEngine  = create_engine('mysql+pymysql://vcedb:Pd7hDEmGG2lk@jablonskimysql.marathon.l4lb.thisdcos.directory:13308/vce', pool_recycle=3600)
 
