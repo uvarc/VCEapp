@@ -39,7 +39,7 @@ import config
 if config.live==False:
     import dbsqlite as dbf
 else:
-    import dbmySQL as dbf
+    import dbmysql as dbf
 #import appFunctions as apfn
 import datetime
 from dash_extensions import Keyboard
