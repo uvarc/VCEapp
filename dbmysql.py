@@ -6,7 +6,7 @@ import pandas as pd
 
 sqlEngine  = create_engine('mysql+pymysql://vcedb:Pd7hDEmGG2lk@jablonskimysql.marathon.l4lb.thisdcos.directory:13308/vce', pool_recycle=3600)
 
-conn=engine.connect()
+conn=sqlEngine.connect()
 
 
 
