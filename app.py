@@ -415,9 +415,9 @@ application.layout = html.Div(
 def keydown(event):
     return json.dumps(event)
 
-@application.callback(Output("placeholder3", "children"), [Input("scan_new_videos", "n_clicks")])
-def scan_for_new(event):
-    if event=='initialized':
+@application.callback(Output("placeholder3", "children"), [Input("scan_new_videos", "n_clicks")], [State('placeholder3','children')])
+def scan_for_new(n_clicks,ignit):
+    if ignit=='initialized':
         dbf.scan_for_new_videos()
     return 'initialized'
 
