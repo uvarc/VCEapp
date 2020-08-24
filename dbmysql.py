@@ -152,8 +152,8 @@ def update_video_row(vname, progress, notes):
                   notes = "{}" 
               WHERE video = "{}"'''
     sql=sql.format(progress,notes,vname)
-    cur=conn.execute(sql)
-    cur.commit()
+    conn.execute(sql)
+
 
     
 def get_vid_data_row(vname):
