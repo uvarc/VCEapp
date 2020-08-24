@@ -405,6 +405,7 @@ application.layout = html.Div(
     #To Prevent Update On Startups
     html.P('',id='placeholder'),
     html.P('',id='placeholder2'),
+    html.P('',id='placeholder3'),
      
     html.P(id='test'),
     html.Div([Keyboard(id="keyboard"), html.Div(id="output")])
