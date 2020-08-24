@@ -99,12 +99,12 @@ def scan_for_new_videos():
     dir_videos.sort()
     dir_videos=['v'+str(x) for x in dir_videos]
     dir_videos
-
+    print(str(dir_videos))
     names=conn.execute('SHOW TABLES')
     #names= conn.fetchall()
     names=[item[0] for item in names if item[0] not in ['prog_table']]
     names.sort()
-
+    print(str(names))
     not_loaded_videos=[x for x in dir_videos if x not in names and x not in ['prog_table']]
 
     for vname in not_loaded_videos:
