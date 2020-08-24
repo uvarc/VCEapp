@@ -142,7 +142,7 @@ def scan_for_new_videos():
         sql='''INSERT INTO prog_table (video, notes, progress)
         VALUES ("{}","No Notes" , "Not Started")'''.format(vname)
         cur=conn.execute(sql)
-        cur.commit()
+
 
 
     
