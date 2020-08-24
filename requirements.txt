@@ -13,3 +13,4 @@ matplotlib
 flask-compress
 dash_extensions
 sqlalchemy
+pymysql
