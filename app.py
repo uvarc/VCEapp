@@ -405,13 +405,14 @@ application.layout = html.Div(
     html.Div(id='num-next',children=[0], style={'display': 'none'}),
     
     #To Prevent Update On Startups
-    html.P('',id='placeholder'),
-    html.P('',id='placeholder2'),
-    html.P('',id='placeholder3'),
-     
+    html.P('',id='placeholder', style={'display': 'none'}),
+    html.P('',id='placeholder2', style={'display': 'none'}),
+    html.P('',id='placeholder3', style={'display': 'none'}),
+
+    
     html.P(id='test'),
     html.Div([Keyboard(id="keyboard"), html.Div(id="output")])
-                      ], style={'max-width':'100%'})
+                      ], style={'max-width':'100%', 'display': 'none'})
 
 
 @application.callback(Output("output", "children"), [Input("keyboard", "keydown")])
@@ -515,7 +516,6 @@ def update_rest_tract(n_clicks,sect,frame,vname):
             dbf.set_rest_tract(vname,sect,frame)
             return 'Complete'
         else:
-            time.sleep(.2)
             return 'Set all past frame:'+str(frame)+' as ' + sect
     except:
         raise dash.exceptions.PreventUpdate
@@ -702,7 +702,19 @@ notesOuts=[Output('notes'+str(offset), 'value') for offset in config.frames]
 @application.callback(sectOuts+abOuts+notesOuts,        
                      [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all', 'children')])
 def popvalues(vname, frame, set_all):
+    
+    if not ctx.triggered:
+        button_id = 'No clicks yet'
+        comp_id = 'No Value'
+    else:
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        comp_id = ctx.triggered[0]['prop_id'].split('.')[1]
+    
+    if button_id=='set_all' and set_all!='Complete':
+        raise dash.exceptions.PreventUpdate
+    
     try:
+        
         values=dbf.read_set(vname, frame, config.frames)
         blanks=len(config.frames)-len(values)
 
