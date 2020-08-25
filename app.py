@@ -702,7 +702,7 @@ notesOuts=[Output('notes'+str(offset), 'value') for offset in config.frames]
 @application.callback(sectOuts+abOuts+notesOuts,        
                      [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all', 'children')])
 def popvalues(vname, frame, set_all):
-    
+    ctx = dash.callback_context
     if not ctx.triggered:
         button_id = 'No clicks yet'
         comp_id = 'No Value'
