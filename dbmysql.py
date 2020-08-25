@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.types import INT, VARCHAR
+from sqlalchemy.types import Integer, Text
 
 import pymysql
 import config
@@ -128,10 +128,10 @@ def scan_for_new_videos():
         vname=vid_folder[-index:]
 
         df.to_sql(vname,conn,if_exists='replace', 
-                  dtype={'index_': INT, 
-                         'tract_section': VARCHAR,
-                         'pathology':VARCHAR,
-                         'notes':VARCHAR}, index=False)
+                  dtype={'index_': Integer, 
+                         'tract_section': Text,
+                         'pathology':Text,
+                         'notes':Text}, index=False)
         conn.execute('''ALTER TABLE {}
                     ADD PRIMARY KEY(index_);'''.format(vname))
         
