@@ -406,9 +406,10 @@ application.layout = html.Div(
     
     #To Prevent Update On Startups
     html.P('',id='placeholder', style={'display': 'none'}),
+     
     html.P('',id='placeholder2', style={'display': 'none'}),
     html.P('',id='placeholder3', style={'display': 'none'}),
-
+    html.P('',id='set_all_var', style={'display': 'none'}),
     
     html.P(id='test'),
     html.Div([Keyboard(id="keyboard"), html.Div(id="output", style={'display': 'none'})])
@@ -497,10 +498,11 @@ def tablepicsize(value):
     
 
 ####
+####
 @application.callback(
-    Output('set_all', 'children'),
-    [Input('set_all','n_clicks'),Input('sectButt0', 'value'), Input('scrub_frame', 'value')],
-    [State('table_name','children')])
+    Output('set_all_var', 'children'),
+    [Input('set_all','n_clicks')],
+    [State('sectButt0', 'value'), State('scrub_frame', 'value'),State('table_name','children')])
      # Input('table', "derived_virtual_selected_rows")
 def update_rest_tract(n_clicks,sect,frame,vname):
     try:
@@ -516,7 +518,19 @@ def update_rest_tract(n_clicks,sect,frame,vname):
             dbf.set_rest_tract(vname,sect,frame)
             return 'Complete'
         else:
-            return 'Set all past frame:'+str(frame)+' as ' + sect
+            raise dash.exceptions.PreventUpdate
+    except:
+        raise dash.exceptions.PreventUpdate
+
+####
+@application.callback(
+    Output('set_all', 'children'),
+    [Input('sectButt0', 'value'), Input('scrub_frame', 'value')])
+     # Input('table', "derived_virtual_selected_rows")
+def update_rest_tract(sect,frame):
+    try:
+        val='Set all past frame:'+str(frame)+' as ' + sect
+        return val
     except:
         raise dash.exceptions.PreventUpdate
     
@@ -700,7 +714,7 @@ abOuts=[Output('abButt'+str(offset), 'value') for offset in config.frames]
 notesOuts=[Output('notes'+str(offset), 'value') for offset in config.frames]
 
 @application.callback(sectOuts+abOuts+notesOuts,        
-                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all', 'children')])
+                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all_var', 'children')])
 def popvalues(vname, frame, set_all):
     ctx = dash.callback_context
     if not ctx.triggered:
@@ -710,9 +724,8 @@ def popvalues(vname, frame, set_all):
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
         comp_id = ctx.triggered[0]['prop_id'].split('.')[1]
     
-    if button_id=='set_all' and set_all!='Complete':
-        raise dash.exceptions.PreventUpdate
     
+
     try:
         
         values=dbf.read_set(vname, frame, config.frames)
@@ -822,6 +835,7 @@ def update_nscrub_(scrub_frame):
         return framenums
     except:
         raise dash.exceptions.PreventUpdate
+
 
         
 @app.route('/vids/<path:path>')
