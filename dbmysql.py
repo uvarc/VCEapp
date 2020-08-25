@@ -44,7 +44,9 @@ def set_rest_tract(vidname, val, row):
               SET tract_section = "{}" 
               WHERE index_ >= {}'''
     sql=sql.format(vidname, val, row)
+    print(sql)
     conn.execute(sql)
+    
     
 def read_set(vidname, center, frames):
     min_row=min([frame+center for frame in frames])
