@@ -411,8 +411,8 @@ application.layout = html.Div(
 
     
     html.P(id='test'),
-    html.Div([Keyboard(id="keyboard"), html.Div(id="output")])
-                      ], style={'max-width':'100%', 'display': 'none'})
+    html.Div([Keyboard(id="keyboard"), html.Div(id="output", style={'display': 'none'})])
+                      ], style={'max-width':'100%'})
 
 
 @application.callback(Output("output", "children"), [Input("keyboard", "keydown")])
