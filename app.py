@@ -7,6 +7,8 @@ import os
 from io import BytesIO
 import base64
 import cv2
+import time
+
 
 import dash
 import dash_html_components as html
@@ -508,11 +510,14 @@ def update_rest_tract(n_clicks,sect,frame,vname):
         else:
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
             comp_id = ctx.triggered[0]['prop_id'].split('.')[1]
-
+        print(button_id)
+       
         if button_id == 'set_all':
+            print('right before function call')
             dbf.set_rest_tract(vname,sect,frame)
             return 'Complete'
         else:
+            time.sleep(.2)
             return 'Set all past frame:'+str(frame)+' as ' + sect
     except:
         raise dash.exceptions.PreventUpdate
