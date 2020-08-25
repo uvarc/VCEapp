@@ -506,10 +506,8 @@ def update_rest_tract(n_clicks,sect,frame,vname):
         ctx = dash.callback_context
         if not ctx.triggered:
             button_id = 'No clicks yet'
-            comp_id = 'No Value'
         else:
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-            comp_id = ctx.triggered[0]['prop_id'].split('.')[1]
         print(button_id)
        
         if button_id == 'set_all':
@@ -702,7 +700,7 @@ abOuts=[Output('abButt'+str(offset), 'value') for offset in config.frames]
 notesOuts=[Output('notes'+str(offset), 'value') for offset in config.frames]
 
 @application.callback(sectOuts+abOuts+notesOuts,        
-                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all', 'n_clicks')])
+                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all', 'children')])
 def popvalues(vname, frame, set_all):
     try:
         values=dbf.read_set(vname, frame, config.frames)
