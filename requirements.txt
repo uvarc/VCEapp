@@ -14,3 +14,4 @@ flask-compress
 dash_extensions
 sqlalchemy
 pymysql
+dash-auth 
