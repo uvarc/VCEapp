@@ -8,7 +8,7 @@ from io import BytesIO
 import base64
 import cv2
 import time
-import dash_auth
+#import dash_auth
 
 import dash
 import dash_html_components as html
@@ -57,10 +57,10 @@ Compress(app)
 print('app compressed')
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
 
-auth = dash_auth.BasicAuth(
-    application,
-    config.VALID_USERNAME_PASSWORD_PAIRS
-)
+#auth = dash_auth.BasicAuth(
+#    application,
+#    config.VALID_USERNAME_PASSWORD_PAIRS
+#)
 
 
 videos=dbf.findnames()
