@@ -46,6 +46,7 @@ else:
 import datetime
 from dash_extensions import Keyboard
 
+print('packages loaded')
 COMPRESS_MIMETYPES = ['text/html', 'text/css', 'text/xml', 'application/json', 'application/javascript', 'image/png', 'image/jpg']
 
 
@@ -53,6 +54,7 @@ app = Flask(__name__)
 
 Compress(app)
 
+print('app compressed')
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
 
 auth = dash_auth.BasicAuth(
