@@ -1,0 +1,6 @@
+CREATE TABLE prog_table ( 
+    video varchar(5), 
+    notes text,
+    progress text);
+    
+ALTER TABLE `prog_table` ADD PRIMARY KEY( `video`); 
