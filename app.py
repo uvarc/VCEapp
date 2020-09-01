@@ -212,11 +212,6 @@ def buildPrevBar(vid, maximum):
 
 
 
-vidLabes=[]
-for vid in videos:
-    vidLabes.append({'label': 'Table: '+ str(vid), 'value':str(vid)})
-
-
 
 vidTable=html.Div(dash_table.DataTable(
         id='vid_table',
