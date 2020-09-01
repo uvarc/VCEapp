@@ -428,7 +428,7 @@ application.layout = html.Div(
     html.P('',id='set_all_var', style={'display': 'none'}),
     
     html.P(id='test'),
-    html.Div([Keyboard(id="keyboard"), html.Div(id="output",'display': 'none')])
+    html.Div([Keyboard(id="keyboard"), html.Div(id="output",style={'display': 'none'})])
                       ], style={'max-width':'100%'})
 
 
