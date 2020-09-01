@@ -63,20 +63,6 @@ application = dash.Dash(__name__, server=app,url_base_pathname='/')
 #)
 
 
-videos=dbf.findnames()
-
-cmap = mpl.cm.get_cmap('plasma')
-
-
-
-
-
-
-def colorFader(mix=0): #fade (linear interpolate) from color c1 (at mix=0) to c2 (mix=1)
-    return mpl.colors.to_hex(cmap(mix))
-
-
-
 def buttonOptions(inputList):
     outList=[]
     for item in inputList:
@@ -99,14 +85,36 @@ def getImage(vid, frame):
 
 
 def buildTopTableStatic(sectOptions,abnormalOptions,frames):
-    max_image_width = str(round(98 * 1/int(config.n_images), 1))+'%'  
+    
+    multi_sel_width= 3
+    max_image_width = str(round((99-multi_sel_width) * 1/int(config.n_images), 1))+'%'  
+    multi_sel_width= str(multi_sel_width)+'%'
+    
     sectOpts=buttonOptions(sectOptions)
     abnormalOpts=buttonOptions(abnormalOptions)
+    abnormal_multi_select_options=[{'label':'', 'value':item['value']} for item in abnormalOpts]
     images=[]
     labels=[]
     sectOptionsButts=[]
     abnormalOptionsButts=[]
     notes = []
+    
+    ## Add multiple select/notes - 
+    images.append(html.Div(html.Img(id='imgmulti', style={'width':'100%', 'border-width': '2px','border-style': 'solid', 'border-color': 'white'}), 
+                               style={'overflow':'hidden', 'max-width':multi_sel_width, 'width':'250px', 'display': 'inline-block'
+                                     }, className='zoomlow'))
+    labels.append(html.Div(html.P(children='all', id='all', style={'color':'black','font-size':'14px','height':'30px', 'background-color':'white','border-width': '2px','border-style': 'solid', 'border-color': 'white'}), 
+                               style={'max-height': '30px', 'overflow':'hidden', 'max-width':multi_sel_width, 'width':'250px', 'display': 'inline-block'}))
+    sectOptionsButts.append(html.Div(html.P(children='', id='all2', style={'color':'black','font-size':'14px','height':'30px', 'background-color':'white','border-width': '2px','border-style': 'solid', 'border-color': 'white'}), 
+                               style={'max-height': '30px', 'overflow':'hidden', 'max-width':multi_sel_width, 'width':'250px', 'display': 'inline-block'}))
+    
+    abnormalOptionsButts.append(html.Div(dcc.RadioItems(id='abButt_multi',
+            options=abnormal_multi_select_options, labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'MistyRose','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'}))   
+    
+    notes.append(html.Div(dcc.Textarea(id='notes_multi',
+            style={'width':'100%', 'background-color': '#fae5d3','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'}))     
     
     
     for i,offset  in enumerate(frames):
@@ -420,7 +428,7 @@ application.layout = html.Div(
     html.P('',id='set_all_var', style={'display': 'none'}),
     
     html.P(id='test'),
-    html.Div([Keyboard(id="keyboard"), html.Div(id="output", style={'display': 'none'})])
+    html.Div([Keyboard(id="keyboard"), html.Div(id="output",'display': 'none')])
                       ], style={'max-width':'100%'})
 
 
@@ -622,7 +630,7 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
         except:
             raise dash.exceptions.PreventUpdate
     
-    elif button_id == 'keyboard' and keyboard['key']=='ArrowRight':
+    elif button_id == 'keyboard' and keyboard['key'] in ['ArrowRight']:
         try:    
             val=frame+int(config.n_images)
             if val > max_val:
@@ -630,7 +638,7 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
             return val #[int(test['points'][0]['x'])]
         except:
             raise dash.exceptions.PreventUpdate 
-    elif button_id == 'keyboard' and keyboard['key']=='ArrowLeft':
+    elif button_id == 'keyboard' and keyboard['key'] in ['ArrowLeft']:
         try:    
             val=frame-int(config.n_images)
             if val<0:
@@ -721,9 +729,16 @@ sectOuts=[Output('sectButt'+str(offset), 'value') for offset in config.frames]
 abOuts=[Output('abButt'+str(offset), 'value') for offset in config.frames]
 notesOuts=[Output('notes'+str(offset), 'value') for offset in config.frames]
 
+sectStates=[State('sectButt'+str(offset), 'value') for offset in config.frames]
+abStates=[State('abButt'+str(offset), 'value') for offset in config.frames]
+notesStates=[State('notes'+str(offset), 'value') for offset in config.frames]
+
+
+
 @application.callback(sectOuts+abOuts+notesOuts,        
-                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all_var', 'children')])
-def popvalues(vname, frame, set_all):
+                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all_var', 'children'),Input('abButt_multi', 'value'),Input('notes_multi', 'value')],
+                     sectStates+abStates+notesStates)
+def popvalues(vname, frame, set_all, abButt_multi, notes_multi,*arg):
     ctx = dash.callback_context
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -732,30 +747,41 @@ def popvalues(vname, frame, set_all):
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
         comp_id = ctx.triggered[0]['prop_id'].split('.')[1]
     
+    nrows=int(len(arg)/3)
+    framenums=[f+frame for f in config.frames]
+    sects=arg[0:nrows]
+    pathos=arg[nrows:2*nrows]
+    notes=arg[2*nrows:3*nrows]
     
+    
+    if button_id not in ['abButt_multi','notes_multi']:
+        try:
 
-    try:
+            values=dbf.read_set(vname, frame, config.frames)
+            blanks=len(config.frames)-len(values)
+
+            sects=[]
+            pathos=[]
+            notes=[]
+
+            for i in range(0,blanks):
+                sects.append('')
+                pathos.append('')
+                notes.append('')
+
+            for row in values:
+                sects.append(row[0])
+                pathos.append(row[1])
+                notes.append(row[2])
+
+            return sects + pathos + notes
+        except:
+            raise dash.exceptions.PreventUpdate
+    elif button_id=='abButt_multi':
+        return list(sects) + [abButt_multi for k in range(0,nrows)] + list(notes)
+    elif button_id=='notes_multi':
+        return list(sects) + list(pathos) + [notes_multi for k in range(0,nrows)]
         
-        values=dbf.read_set(vname, frame, config.frames)
-        blanks=len(config.frames)-len(values)
-
-        sects=[]
-        pathos=[]
-        notes=[]
-
-        for i in range(0,blanks):
-            sects.append('')
-            pathos.append('')
-            notes.append('')
-
-        for row in values:
-            sects.append(row[0])
-            pathos.append(row[1])
-            notes.append(row[2])
-
-        return sects + pathos + notes
-    except:
-        raise dash.exceptions.PreventUpdate
 
 ### Select Video Table From Database - update 
 
@@ -845,13 +871,13 @@ def update_nscrub_(scrub_frame):
         raise dash.exceptions.PreventUpdate
 
 
+
         
 @app.route('/vids/<path:path>')
 def send_jss(path):
     pos=-(path[::-1].find('/'))
     filename=path[pos::]
     path=path[0:pos]
-    print('poop')
     return send_from_directory(filespath+path, filename)
 
 
