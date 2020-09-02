@@ -62,7 +62,6 @@ application = dash.Dash(__name__, server=app,url_base_pathname='/')
 #    config.VALID_USERNAME_PASSWORD_PAIRS
 #)
 
-
 def buttonOptions(inputList):
     outList=[]
     for item in inputList:
@@ -97,6 +96,9 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
     labels=[]
     sectOptionsButts=[]
     abnormalOptionsButts=[]
+    inflammation=[]
+    edemous_villi=[]
+    diffuse_bleeding=[]
     notes = []
     
     ## Add multiple select/notes - 
@@ -111,7 +113,15 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
     abnormalOptionsButts.append(html.Div(dcc.RadioItems(id='abButt_multi',
             options=abnormal_multi_select_options, labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'MistyRose','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'}))   
-    
+    inflammation.append(html.Div(dcc.Checklist(id='inflammation_multi',
+            options=[{'label': '', 'value': 1}], labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'RosyBrown','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'}))   
+    edemous_villi.append(html.Div(dcc.Checklist(id='edemous_villi_multi',
+            options=[{'label': '', 'value': 1}], labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'Tan','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'})) 
+    diffuse_bleeding.append(html.Div(dcc.Checklist(id='diffuse_multi',
+            options=[{'label': '', 'value': 1}],  labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'LightCoral','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'})) 
     notes.append(html.Div(dcc.Textarea(id='notes_multi',
             style={'width':'100%', 'background-color': '#fae5d3','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'}))     
@@ -133,6 +143,16 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
             options=abnormalOpts, labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'MistyRose','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'}))   
         
+        inflammation.append(html.Div(dcc.Checklist(id='inflammation'+ str(offset),
+            options=[{'label': 'inflammation', 'value': 1}], labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'RosyBrown','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'}))   
+        edemous_villi.append(html.Div(dcc.Checklist(id='edemous_villi'+ str(offset),
+            options=[{'label': 'edemous_villi', 'value': 1}], labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'Tan','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'})) 
+        diffuse_bleeding.append(html.Div(dcc.Checklist(id='diffuse'+ str(offset),
+            options=[{'label': 'diffuse_bleeding', 'value': 1}],labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'LightCoral','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'})) 
+        
         notes.append(html.Div(dcc.Textarea(id='notes'+ str(offset),
             style={'width':'100%', 'background-color': '#fae5d3','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'}))   
@@ -141,10 +161,14 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
     labels=html.Div(labels,style={'text-align':'center','margin':'0 auto'} )
     sectOptionsButts=html.Div(sectOptionsButts,style={'text-align':'center','margin':'0 auto'})
     abnormalOptionsButts=html.Div(abnormalOptionsButts,style={'text-align':'center','margin':'0 auto'})
+
+    inflammation=html.Div(inflammation,style={'text-align':'center','margin':'0 auto'})
+    edemous_villi=html.Div(edemous_villi,style={'text-align':'center','margin':'0 auto'})
+    diffuse_bleeding=html.Div(diffuse_bleeding,style={'text-align':'center','margin':'0 auto'})
     notesFill=html.Div(notes,style={'text-align':'center','margin':'0 auto'})
     #probs=html.Div(probs,style={'text-align':'center','margin':'0 auto'} )
 
-    return html.Div([labels,images,sectOptionsButts,abnormalOptionsButts, notesFill])
+    return html.Div([labels,images,sectOptionsButts,abnormalOptionsButts,inflammation,edemous_villi, diffuse_bleeding,notesFill])
 
    
   
@@ -227,7 +251,7 @@ vidTable=html.Div(dash_table.DataTable(
 
 def build_edit_table(sectOptions, abnormalOptions):
     PAGE_SIZE=10
-    COLUMNS=[{"name": i, "id": i} for i in ['index_','tract_section', 'pathology', 'notes']]
+    COLUMNS=[{"name": i, "id": i} for i in ['index_','tract_section', 'pathology', 'inflammation', 'edemous_villi','diffuse_bleed','notes']]
     COLUMNS[1].update({ "presentation": "dropdown"})
     COLUMNS[2].update({ "presentation": "dropdown"})
 
@@ -423,7 +447,7 @@ application.layout = html.Div(
     html.P('',id='set_all_var', style={'display': 'none'}),
     
     html.P(id='test'),
-    html.Div([Keyboard(id="keyboard"), html.Div(id="output",style={'display': 'none'})])
+    html.Div([Keyboard(id="keyboard"), html.Div(id="output")])
                       ], style={'max-width':'100%'})
 
 
@@ -477,19 +501,21 @@ def update_image_div(value, table):
             [Input('save_table','n_clicks')],
                      [State('table','data'), State('table_name','children')])
 def save_table(n_clicks, data,vname):   
-    try:
-        data=pd.DataFrame(data)
-        labelsdf=dbf.get_video_df(vname)
-        ans=[any(row[1]) for row in (~data.isin(labelsdf)).iterrows()]
-        data=data[ans]
-        j=0
-        for i,row in data.iterrows():
-            j=j+1
-            dbf.update_row(vname,(row['tract_section'], row['pathology'],
-                           row['notes']),row['index_'])
-        return 'Saved ' + str(j) + ' rows at '+ str(datetime.datetime.now())
-    except:
-        raise dash.exceptions.PreventUpdate
+    
+    data=pd.DataFrame(data)
+    labelsdf=dbf.get_video_df(vname)
+    data=data[['index_', 'tract_section', 'pathology','inflammation','edemous_villi','diffuse_bleed','notes']]
+    labelsdf=labelsdf[['index_', 'tract_section', 'pathology','inflammation','edemous_villi','diffuse_bleed','notes']]
+    ans=[any(row[1]) for row in (~data.isin(labelsdf)).iterrows()]
+    data=data[ans]
+    j=0
+    for i,row in data.iterrows():
+        j=j+1
+        dbf.update_row(vname,(row['tract_section'], row['pathology'],
+                       row['notes'], row['inflammation'],row['edemous_villi'],row['diffuse_bleed']),row['index_'])
+    return 'Saved ' + str(j) + ' rows at '+ str(datetime.datetime.now())
+   #except:
+   #     raise dash.exceptions.PreventUpdate
     
     
     
@@ -522,10 +548,8 @@ def update_rest_tract(n_clicks,sect,frame,vname):
             button_id = 'No clicks yet'
         else:
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-        print(button_id)
        
         if button_id == 'set_all':
-            print('right before function call')
             dbf.set_rest_tract(vname,sect,frame)
             return 'Complete'
         else:
@@ -667,10 +691,16 @@ sectInputs=[State('sectButt'+str(offset), 'value') for offset in config.frames]
 abInputs=[State('abButt'+str(offset), 'value') for offset in config.frames]
 notesInputs=[State('notes'+str(offset), 'value') for offset in config.frames]
 
+inflammationInputs=[State('inflammation'+str(offset), 'value') for offset in config.frames]
+edemous_villiInputs=[State('edemous_villi'+str(offset), 'value') for offset in config.frames]
+diffuse_bleedInputs=[State('diffuse'+str(offset), 'value') for offset in config.frames]
+
+allinputs=sectInputs+abInputs+notesInputs+inflammationInputs+edemous_villiInputs+diffuse_bleedInputs
+
 @application.callback(Output('placeholder','children'),
                      [Input('next', 'n_clicks'),Input('prev', 'n_clicks'),
                      Input('next_set', 'n_clicks'),Input('prev_set', 'n_clicks'), Input('keyboard', 'keydown')],
-                     [State('table_name', 'children'), State('scrub_frame', 'value'), State('placeholder', 'children')] + sectInputs+abInputs+notesInputs)
+                     [State('table_name', 'children'), State('scrub_frame', 'value'), State('placeholder', 'children')] + allinputs)
 def saveScrubInputs(next_c, prev_c, next_s_c, prev_s_c, keyboard, vname, frame, initialized, *arg):
     ctx = dash.callback_context
 
@@ -688,33 +718,34 @@ def saveScrubInputs(next_c, prev_c, next_s_c, prev_s_c, keyboard, vname, frame, 
     
     
     
-    if button_id!='keyboard' and initialized == 'initialized':
-        nrows=int(len(arg)/3)
+    if initialized == 'initialized':
+        nrows=int(len(arg)/6)
         framenums=[f+frame for f in config.frames]
         sects=arg[0:nrows]
         pathos=arg[nrows:2*nrows]
         notes=arg[2*nrows:3*nrows]
+        inflammation=arg[3*nrows:4*nrows]
+        edemous_villi=arg[4*nrows:5*nrows]
+        diffuse=arg[5*nrows:6*nrows]
         values=[]
         for i in range(0,nrows):
-            values.append([framenums[i],sects[i],pathos[i],notes[i]])
+            if len(inflammation[i])>0:
+                inf=inflammation[i][-1]
+            else:
+                inf=0
+            if len(edemous_villi[i])>0:
+                edem=edemous_villi[i][-1]
+            else:
+                edem=0
+            if len(diffuse[i])>0:
+                diff=diffuse[i][-1]
+            else:
+                diff=0          
+            values.append([framenums[i],sects[i],pathos[i],notes[i],inf,edem,diff])    
         #values=values[frame]
         values=[row for row in values if row[0] >= 0 ]
-        dbf.update_rows(vname,values)
-    if button_id =='keyboard' and (keyboard['key']=='ArrowRight' or keyboard['key']=='ArrowLeft'):
-        nrows=int(len(arg)/3)
-        framenums=[f+frame for f in config.frames]
-        sects=arg[0:nrows]
-        pathos=arg[nrows:2*nrows]
-        notes=arg[2*nrows:3*nrows]
-        values=[]
-        for i in range(0,nrows):
-            values.append([framenums[i],sects[i],pathos[i],notes[i]])
-        #values=values[frame]
-        values=[row for row in values if row[0] >= 0 ]
-        dbf.update_rows(vname,values)
+        dbf.update_rows(vname,values)  
     
-    
-
     return 'initialized'
 
 
@@ -724,16 +755,24 @@ sectOuts=[Output('sectButt'+str(offset), 'value') for offset in config.frames]
 abOuts=[Output('abButt'+str(offset), 'value') for offset in config.frames]
 notesOuts=[Output('notes'+str(offset), 'value') for offset in config.frames]
 
+inflammationOuts=[Output('inflammation'+str(offset), 'value') for offset in config.frames]
+edemous_villiOuts=[Output('edemous_villi'+str(offset), 'value') for offset in config.frames]
+diffuse_bleedOuts=[Output('diffuse'+str(offset), 'value') for offset in config.frames]
+
 sectStates=[State('sectButt'+str(offset), 'value') for offset in config.frames]
 abStates=[State('abButt'+str(offset), 'value') for offset in config.frames]
 notesStates=[State('notes'+str(offset), 'value') for offset in config.frames]
 
+inflammationStates=[State('inflammation'+str(offset), 'value') for offset in config.frames]
+edemous_villiStates=[State('edemous_villi'+str(offset), 'value') for offset in config.frames]
+diffuse_bleedStates=[State('diffuse'+str(offset), 'value') for offset in config.frames]
 
 
-@application.callback(sectOuts+abOuts+notesOuts,        
-                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all_var', 'children'),Input('abButt_multi', 'value'),Input('notes_multi', 'value')],
-                     sectStates+abStates+notesStates)
-def popvalues(vname, frame, set_all, abButt_multi, notes_multi,*arg):
+@application.callback(sectOuts+abOuts+notesOuts+inflammationOuts+edemous_villiOuts+diffuse_bleedOuts,        
+                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all_var', 'children'),
+                      Input('abButt_multi', 'value'),Input('notes_multi', 'value'),Input('inflammation_multi', 'value'),Input('edemous_villi_multi', 'value'),Input('diffuse_multi', 'value')],
+                     sectStates+abStates+notesStates+inflammationStates+edemous_villiStates+diffuse_bleedStates)
+def popvalues(vname, frame, set_all, abButt_multi, notes_multi,inflammation_multi,edemous_villi_multi,diffuse_multi,*arg):
     ctx = dash.callback_context
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -742,14 +781,16 @@ def popvalues(vname, frame, set_all, abButt_multi, notes_multi,*arg):
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
         comp_id = ctx.triggered[0]['prop_id'].split('.')[1]
     
-    nrows=int(len(arg)/3)
+    nrows=int(len(arg)/6)
     framenums=[f+frame for f in config.frames]
     sects=arg[0:nrows]
     pathos=arg[nrows:2*nrows]
     notes=arg[2*nrows:3*nrows]
+    inflams=arg[3*nrows:4*nrows]
+    edems=arg[4*nrows:5*nrows]
+    diffuses=arg[5*nrows:6*nrows]
     
-    
-    if button_id not in ['abButt_multi','notes_multi']:
+    if button_id not in ['abButt_multi','notes_multi','edemous_villi_multi','diffuse_multi','inflammation_multi']:
         try:
 
             values=dbf.read_set(vname, frame, config.frames)
@@ -758,25 +799,39 @@ def popvalues(vname, frame, set_all, abButt_multi, notes_multi,*arg):
             sects=[]
             pathos=[]
             notes=[]
-
+            inflams=[]
+            edems=[]
+            diffuses=[]
+            
             for i in range(0,blanks):
                 sects.append('')
                 pathos.append('')
                 notes.append('')
+                inflams.append('')
+                edems.append('')
+                diffuses.append('')
 
             for row in values:
                 sects.append(row[0])
                 pathos.append(row[1])
                 notes.append(row[2])
+                inflams.append([row[3]])
+                edems.append([row[4]])
+                diffuses.append([row[5]])
 
-            return sects + pathos + notes
+            return sects + pathos + notes + inflams + edems + diffuses
         except:
             raise dash.exceptions.PreventUpdate
     elif button_id=='abButt_multi':
-        return list(sects) + [abButt_multi for k in range(0,nrows)] + list(notes)
+        return list(sects) + [abButt_multi for k in range(0,nrows)] + list(notes) + list(inflams) + list(edems) + list(diffuses)
     elif button_id=='notes_multi':
-        return list(sects) + list(pathos) + [notes_multi for k in range(0,nrows)]
-        
+        return list(sects) + list(pathos) + [notes_multi for k in range(0,nrows)] + list(inflams) + list(edems) + list(diffuses)
+    elif button_id=='inflammation_multi':
+        return list(sects) + list(pathos) +  list(notes) + [inflammation_multi for k in range(0,nrows)] + list(edems) + list(diffuses)
+    elif button_id=='edemous_villi_multi':
+        return list(sects) + list(pathos) + list(notes)  + list(inflams) + [edemous_villi_multi for k in range(0,nrows)] + list(diffuses)
+    elif button_id=='diffuse_multi':
+        return list(sects) + list(pathos) + list(notes) + list(inflams) + list(edems) + [diffuse_multi for k in range(0,nrows)]
 
 ### Select Video Table From Database - update 
 
@@ -864,6 +919,7 @@ def update_nscrub_(scrub_frame):
         return framenums
     except:
         raise dash.exceptions.PreventUpdate
+
 
 
 
