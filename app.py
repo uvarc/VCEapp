@@ -501,9 +501,11 @@ def update_image_div(value, table):
             [Input('save_table','n_clicks')],
                      [State('table','data'), State('table_name','children')])
 def save_table(n_clicks, data,vname):   
-    
+    print('UPDATE TABLE PRESSED') 
     data=pd.DataFrame(data)
+    print(data.shape)
     labelsdf=dbf.get_video_df(vname)
+    print(labelsdf.shape)
     data=data[['index_', 'tract_section', 'pathology','inflammation','edemous_villi','diffuse_bleed','notes']]
     labelsdf=labelsdf[['index_', 'tract_section', 'pathology','inflammation','edemous_villi','diffuse_bleed','notes']]
     ans=[any(row[1]) for row in (~data.isin(labelsdf)).iterrows()]
