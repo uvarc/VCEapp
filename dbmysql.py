@@ -139,9 +139,9 @@ def scan_for_new_videos():
                          'tract_section': Text,
                          'pathology':Text,
                          'notes':Text,
-                         'inflammation':Integer(1),
-                         'edemous_villi':Integer(1),
-                         'diffuse_bleed':Integer(1)}, index=False)
+                         'inflammation':Integer,
+                         'edemous_villi':Integer,
+                         'diffuse_bleed':Integer}, index=False)
         conn.execute('''ALTER TABLE {}
                     ADD PRIMARY KEY(index_);'''.format(vname))
         
