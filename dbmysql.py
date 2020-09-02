@@ -106,15 +106,11 @@ def get_video_df(vname):
 ## Function to Update Table With Pandas DF
 
 def scan_for_new_videos():
-    dir_videos=[int(x[1:]) for x in os.listdir('/project/DSone/jaj4zcf/Videos/') if '.' not in x and x[0]=='v']
-    dir_videos.sort()
-    dir_videos=['v'+str(x) for x in dir_videos]
-    dir_videos
+    dir_videos=[x for x in os.listdir('/project/DSone/jaj4zcf/Videos/') if '.' not in x and x[0]=='v']
     print(str(dir_videos))
     names=conn.execute('SHOW TABLES')
     #names= conn.fetchall()
     names=[item[0] for item in names if item[0] not in ['prog_table']]
-    names.sort()
     print(str(names))
     not_loaded_videos=[x for x in dir_videos if x not in names and x not in ['prog_table']]
 
