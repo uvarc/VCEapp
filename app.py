@@ -510,6 +510,7 @@ def save_table(n_clicks, data,vname):
     data=data[ans]
     j=0
     for i,row in data.iterrows():
+        print('UPDATING' + str(row))
         j=j+1
         dbf.update_row(vname,(row['tract_section'], row['pathology'],
                        row['notes'], row['inflammation'],row['edemous_villi'],row['diffuse_bleed']),row['index_'])
