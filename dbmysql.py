@@ -29,10 +29,10 @@ def get_vid_data():
     
 def update_row(vidname, vals, row):
     sql = ''' UPDATE {}
-              SET tract_section = "{}" ,
-                  pathology = "{}" ,
+              SET tract_section = "{}",
+                  pathology = "{}",
                   notes = "{}",
-                  inflammation={},
+                  inflammation= {},
                   edemous_villi={},
                   diffuse_bleed={}
               WHERE index_ = {}'''
