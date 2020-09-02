@@ -151,9 +151,8 @@ def scan_for_new_videos():
 
     vids=list(pd.read_sql('SELECT * FROM prog_table',conn)['video'])
     not_loaded_videos=[x for x in names if x not in vids]
-    not_loaded_videos=[int(x[1:]) for x in not_loaded_videos if x not in ['prog_table'] and x[0]=='v']
-    not_loaded_videos.sort()
-    not_loaded_videos=['v'+str(x) for x in not_loaded_videos]
+    not_loaded_videos=[x for x in not_loaded_videos if x not in ['prog_table'] and x[0]=='v']
+   
     for vname in not_loaded_videos:
         sql='''INSERT INTO prog_table (video, notes, progress)
         VALUES ("{}","No Notes" , "Not Started")'''.format(vname)
