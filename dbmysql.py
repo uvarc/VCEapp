@@ -34,9 +34,10 @@ def update_row(vidname, vals, row):
                   notes = "{}",
                   inflammation= {},
                   edemous_villi={},
+                  bleed={},
                   diffuse_bleed={}
               WHERE index_ = {}'''
-    sql=sql.format(vidname, vals[0], vals[1],vals[2],vals[3],vals[4],vals[5], row)
+    sql=sql.format(vidname, vals[0], vals[1],vals[2],vals[3],vals[4],vals[5],vals[6], row)
     conn.execute(sql)
     
     
@@ -54,20 +55,20 @@ def set_rest_tract(vidname, val, row):
 def read_set(vidname, center, frames):
     min_row=min([frame+center for frame in frames])
     max_row=max([frame+center for frame in frames])
-    sql = ''' SELECT tract_section,pathology, notes, inflammation, edemous_villi, diffuse_bleed FROM {}
+    sql = ''' SELECT tract_section,pathology, notes, inflammation, edemous_villi, bleed, diffuse_bleed FROM {}
               WHERE index_ >= {}
               AND index_ <= {}'''
     sql=sql.format(vidname, min_row, max_row)
-    print(sql)
+    #print(sql)
     cur=conn.execute(sql)
     res=cur.fetchall()
     return res
 
 def update_rows(vname,values):
-    sql = '''INSERT INTO {} (index_, tract_section, pathology, notes, inflammation, edemous_villi, diffuse_bleed) 
-        VALUES ({}, "{}", "{}", "{}",{},{},{}),'''
+    sql = '''INSERT INTO {} (index_, tract_section, pathology, notes, inflammation, edemous_villi,bleed, diffuse_bleed) 
+        VALUES ({}, "{}", "{}", "{}",{},{},{},{}),'''
     for i in range(0,len(values)-1):
-        row='''\n    ({}, "{}", "{}", "{}",{},{},{}),'''
+        row='''\n    ({}, "{}", "{}", "{}",{},{},{},{}),'''
         sql=sql + row
     sql=sql[:-1]
     sql=sql+'''\n ON DUPLICATE KEY UPDATE 
@@ -76,8 +77,9 @@ def update_rows(vname,values):
         notes=VALUES(notes),
         inflammation=VALUES(inflammation),
         edemous_villi=VALUES(edemous_villi),
+        bleed=VALUES(bleed),
         diffuse_bleed=VALUES(diffuse_bleed)'''
-    print(sql)
+    #print(sql)
     vals=[vname]
     for item in values:
         vals=vals+item
@@ -99,7 +101,7 @@ def get_video_df(vname):
     columns=table.keys()
     table=table.fetchall()
     table=pd.DataFrame(table, columns=columns)
-    labelsdf=table[['index_', 'tract_section','notes', 'pathology','inflammation','edemous_villi','diffuse_bleed']]
+    labelsdf=table[['index_', 'tract_section','notes', 'pathology','inflammation','edemous_villi','bleed','diffuse_bleed']]
     return labelsdf
 
 
@@ -121,12 +123,13 @@ def scan_for_new_videos():
         # Strip .jpg off file names
         allfiles=[int(item[:-4]) for item in allfiles]
         allfiles.sort()
-        df=pd.DataFrame(columns=['index_', 'tract_section', 'pathology','inflammation','edemous_villi','diffuse_bleed', 'notes'])
+        df=pd.DataFrame(columns=['index_', 'tract_section', 'pathology','inflammation','edemous_villi','bleed','diffuse_bleed', 'notes'])
         df['index_']=allfiles
         df['tract_section']=config.sectOptions[0]
         df['pathology']=config.abnormalOptions[0]
         df['inflammation']=0
         df['edemous_villi']=0
+        df['bleed']=0
         df['diffuse_bleed']=0
         df['notes']=''
 
@@ -141,6 +144,7 @@ def scan_for_new_videos():
                          'notes':Text,
                          'inflammation':Integer,
                          'edemous_villi':Integer,
+                         'bleed':Integer,
                          'diffuse_bleed':Integer}, index=False)
         conn.execute('''ALTER TABLE {}
                     ADD PRIMARY KEY(index_);'''.format(vname))
