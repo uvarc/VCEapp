@@ -852,7 +852,7 @@ def popvalues(vname, frame, set_all, abButt_multi, notes_multi,inflammation_mult
     elif button_id=='edemous_villi_multi':
         return list(sects) + list(pathos) + list(notes)  + list(inflams) + [edemous_villi_multi for k in range(0,nrows)] +list(bleeds) + list(diffuses)
     elif button_id=='bleed_multi':
-        return list(sects) + list(pathos) + list(notes) + list(inflams) + list(edems) + [bleed_multi for k in range(0,nrows)] + list(bleeds) 
+        return list(sects) + list(pathos) + list(notes) + list(inflams) + list(edems) + [bleed_multi for k in range(0,nrows)] + list(diffuses) 
     elif button_id=='diffuse_multi':
         return list(sects) + list(pathos) + list(notes) + list(inflams) + list(edems) + list(bleeds) + [diffuse_multi for k in range(0,nrows)]
 
