@@ -261,7 +261,8 @@ vidTable=html.Div(dash_table.DataTable(
 
 def build_edit_table(sectOptions, abnormalOptions):
     PAGE_SIZE=10
-    COLUMNS=[{"name": i, "id": i} for i in ['index_','tract_section', 'pathology', 'inflammation', 'edemous_villi','diffuse_bleed','notes']]
+    COLUMNS=[{"name": i, "id": i} for i in ['index_','tract_section', 'pathology', 'inflammation', 'edemous_villi','bleed','diffuse_bleed','notes']]
+    COLUMNS[0].update({ "editable": False})
     COLUMNS[1].update({ "presentation": "dropdown"})
     COLUMNS[2].update({ "presentation": "dropdown"})
 
@@ -296,6 +297,7 @@ def build_edit_table(sectOptions, abnormalOptions):
             'maxWidth': 0,},
         ),style={'width':'auto','overflow':'hidden'})
     return table
+
 
 
 styles = {
