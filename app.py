@@ -124,7 +124,7 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
             options=[{'label': '', 'value': 1}],  labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'DarkSalmon','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'})) 
     bleed.append(html.Div(dcc.Checklist(id='bleed_multi',
-            options=[{'label': '', 'value': 1}],  labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'LightCoral','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            options=[{'label': '', 'value': 1}],  labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'red','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'})) 
     notes.append(html.Div(dcc.Textarea(id='notes_multi',
             style={'width':'100%', 'background-color': '#fae5d3','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
