@@ -798,7 +798,7 @@ def popvalues(vname, frame, set_all, abButt_multi, notes_multi,inflammation_mult
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
         comp_id = ctx.triggered[0]['prop_id'].split('.')[1]
     
-    nrows=int(len(arg)/6)
+    nrows=int(len(arg)/7)
     framenums=[f+frame for f in config.frames]
     sects=arg[0:nrows]
     pathos=arg[nrows:2*nrows]
