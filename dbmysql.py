@@ -39,6 +39,28 @@ def update_row(vidname, vals, row):
               WHERE index_ = {}'''
     sql=sql.format(vidname, vals[0], vals[1],vals[2],vals[3],vals[4],vals[5],vals[6], row)
     conn.execute(sql)
+
+    
+## Query to enable table update of multiple rows    
+def update_multi_row(vals):
+    sql=''
+    for i in length(rows): 
+        sql_i = ''' UPDATE {}
+                  SET tract_section = "{}" ,
+                      pathology = "{}" ,
+                      notes = "{}",
+                      inflammation={},
+                      edemous_villi={},
+                      bleed={},
+                      diffuse_bleed={}
+                  WHERE index_ = {}; '''
+        sql_i=sql.format(vals[0], vals[1], vals[2],vals[3],vals[4],vals[5],vals[6], vals[7])
+        sql=sql+sql
+    cur = conn.cursor()
+    cur.executescript(sql)
+    conn.commit()
+    conn.close()    
+    
     
     
 def get_anoms(tables, condition):
