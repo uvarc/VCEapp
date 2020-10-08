@@ -41,6 +41,15 @@ def update_row(vidname, vals, row):
     conn.execute(sql)
     
     
+def get_anoms(tables, condition):
+    query=''
+    for x in tables:
+        query = query + 'select index_,video,tract_section,pathology,inflammation,edemous_villi,bleed,diffuse_bleed,notes from ' + x + ' where ' + condition + ' UNION ALL ' 
+    query=query[:-11]
+    sql = query +';'
+    conn.execute(sql)
+    row=cur.fetchall()
+    return row    
 
 def set_rest_tract(vidname, val, row):
     row=str(row)
