@@ -44,7 +44,7 @@ def update_row(vidname, vals, row):
 ## Query to enable table update of multiple rows    
 def update_multi_row(vals):
     sql=''
-    for i in length(rows): 
+    for i in len(rows): 
         sql_i = ''' UPDATE {}
                   SET tract_section = "{}" ,
                       pathology = "{}" ,
