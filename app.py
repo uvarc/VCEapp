@@ -62,6 +62,7 @@ application = dash.Dash(__name__, server=app,url_base_pathname='/')
 #    config.VALID_USERNAME_PASSWORD_PAIRS
 #)
 
+
 def buttonOptions(inputList):
     outList=[]
     for item in inputList:
@@ -108,7 +109,7 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
                                      }, className='zoomlow'))
     labels.append(html.Div(html.P(children='all', id='all', style={'color':'black','font-size':'14px','height':'30px', 'background-color':'white','border-width': '2px','border-style': 'solid', 'border-color': 'white'}), 
                                style={'max-height': '30px', 'overflow':'hidden', 'max-width':multi_sel_width, 'width':'250px', 'display': 'inline-block'}))
-    sectOptionsButts.append(html.Div(html.P(children='', id='all2', style={'color':'black','font-size':'14px','height':'30px', 'background-color':'white','border-width': '2px','border-style': 'solid', 'border-color': 'white'}), 
+    sectOptionsButts.append(html.Div(html.P(children=html.Button('c',id='clone'), id='all2', style={'color':'black','font-size':'14px','height':'30px', 'background-color':'white','border-width': '2px','border-style': 'solid', 'border-color': 'white'}), 
                                style={'max-height': '30px', 'overflow':'hidden', 'max-width':multi_sel_width, 'width':'250px', 'display': 'inline-block'}))
     
     abnormalOptionsButts.append(html.Div(dcc.RadioItems(id='abButt_multi',
@@ -124,7 +125,7 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
             options=[{'label': '', 'value': 1}],  labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'DarkSalmon','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'})) 
     bleed.append(html.Div(dcc.Checklist(id='bleed_multi',
-            options=[{'label': '', 'value': 1}],  labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'red','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            options=[{'label': '', 'value': 1}],  labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'LightCoral','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':multi_sel_width,  'width':'250px', 'display': 'inline-block'})) 
     notes.append(html.Div(dcc.Textarea(id='notes_multi',
             style={'width':'100%', 'background-color': '#fae5d3','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
@@ -183,15 +184,18 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
    
   
     
-def buildimages(vid, table):    
+
+
+
+def buildimages(table):    
     frames=[i['index_'] for i in table]  #[item for item in range(-10,10)] #[-3,-2,-1,0,1,2,3]
-    
+    videos=[i['video'] for i in table] 
     images=[]
     labels=[]
     
     for i,offset  in enumerate(frames):
-        impath='/project/DSone/jaj4zcf/Videos/v'+str(vid)[-2:]+'/'+str(offset)+'.jpg'    ## may need to be updated for final!
-        impathdirect='/vids/v'+str(vid)[-2:]+'/'+str(offset)+'.jpg'
+        impath='/project/DSone/jaj4zcf/Videos/'+str(videos[i])+'/'+str(offset)+'.jpg'    ## may need to be updated for final!
+        impathdirect='/vids/'+str(videos[i])+'/'+str(offset)+'.jpg'
         ## Only add if file exists
         try:
             if config.live==True:
@@ -211,6 +215,7 @@ def buildimages(vid, table):
     images=html.Table(images,style={'width': '99%', 'float':'left'} )
     
     return images
+
 
 
 
@@ -259,15 +264,17 @@ vidTable=html.Div(dash_table.DataTable(
 
 
 
-def build_edit_table(sectOptions, abnormalOptions):
+def build_edit_table(sectOptions, abnormalOptions, ID):
     PAGE_SIZE=10
-    COLUMNS=[{"name": i, "id": i} for i in ['index_','tract_section', 'pathology', 'inflammation', 'edemous_villi','bleed','diffuse_bleed','notes']]
+    COLUMNS=[{"name": i, "id": i} for i in ['index_', 'video', 'tract_section', 'pathology', 'inflammation', 'edemous_villi','bleed','diffuse_bleed','notes']]
+
     COLUMNS[0].update({ "editable": False})
-    COLUMNS[1].update({ "presentation": "dropdown"})
+    COLUMNS[1].update({ "editable": False})
     COLUMNS[2].update({ "presentation": "dropdown"})
+    COLUMNS[3].update({ "presentation": "dropdown"})
 
     table=html.Div(dash_table.DataTable(
-        id='table',
+        id=ID,
         editable=True,
         sort_action = 'native',
         page_size = PAGE_SIZE,               
@@ -299,7 +306,6 @@ def build_edit_table(sectOptions, abnormalOptions):
     return table
 
 
-
 styles = {
     'pre': {
         'border': 'thin lightgrey solid',
@@ -316,6 +322,10 @@ else:
     leg=html.Img(src='data:image/jpg;base64,{}'.format(encoded_image), style={'height': '40px','width': '80px','float':'right','display':'inline-block', 'vertical-align': 'middle'})
     
 
+    
+
+    
+    
 application.layout = html.Div(
     [   html.H2('Deep VCE Video Frame Annotation Tool'),
         html.H5('Select a Video From the Video Table to Begin'),
@@ -402,7 +412,7 @@ application.layout = html.Div(
                     html.Div(id='imagecontainertop', style={'height':'80px'}),
                     html.Div(id='imagecontainer', style={'height':'1000px'}),
                 ], id='imagecontainerwrap', style={'width':'100px','float':'left','display':'inline-block'}),
-                    build_edit_table(config.sectOptions, config.abnormalOptions)
+                    build_edit_table(config.sectOptions, config.abnormalOptions, ID='table')
                 ],
                 style={'display':'inline-block', 'width':'100%'}),
             
@@ -417,6 +427,54 @@ application.layout = html.Div(
             html.P('Number of Rows in Table:'),
             dcc.Slider(
                 id='num_rows',
+                min=3,
+                max=20,
+                step=1,
+                value=10,
+            ), 
+                
+            ]),
+            dcc.Tab(label='Review Tool', children=[
+            
+            html.Button('Load Abnormalities', id='fill_table_review', n_clicks=0, style={'display':'inline-block', 'vertical-align': 'middle'}),
+            dcc.RadioItems(
+                id='abnormal_options',
+                options=[
+                    {'label': 'abNormal Pathologies', 'value': 'abnormal_path'},
+                    {'label': 'Any Abnormality', 'value': 'any'},
+                    {'label': 'Oracle Review', 'value': 'oracle'},
+                    {'label': 'Bleeds', 'value': 'bleeds'},
+                    {'label': 'Inflammation', 'value': 'inflammation'},
+                    {'label': 'Edemous Villi', 'value': 'edemous'}
+                ],
+                value=['abnormal_path'],
+                labelStyle={'display': 'inline-block'}
+            ),  
+    
+                
+            html.H5('Use the Data Table Below to explore Results - Click Save Changes to Save Any Changes'),
+            html.Button('Save Table Changes', id='save_table_review', n_clicks=0, style={'display':'inline-block', 'vertical-align': 'middle'}),
+            html.P(id='Saved_review'),
+            html.Div([
+                html.Div( [
+                    html.Div(id='imagecontainertop_review', style={'height':'80px'}),
+                    html.Div(id='imagecontainer_review', style={'height':'1000px'}),
+                ], id='imagecontainerwrap_review', style={'width':'100px','float':'left','display':'inline-block'}),
+                    build_edit_table(config.sectOptions, config.abnormalOptions, ID='table_review')
+                ],
+                style={'display':'inline-block', 'width':'100%'}),
+            
+            html.P('Image Size Slider:'),
+            dcc.Slider(
+                id='imSize_review',
+                min=100,
+                max=512,
+                step=1,
+                value=100,
+            ),  
+            html.P('Number of Rows in Table:'),
+            dcc.Slider(
+                id='num_rows_review',
                 min=3,
                 max=20,
                 step=1,
@@ -492,22 +550,33 @@ def update_table_name(selected_rows, data):
 
 
 
-
+# Builds Images on Table View
 @application.callback(
     Output('imagecontainer', 'children'),
-    [ Input('table_name', 'children'), Input('table', 'derived_viewport_data') ])
-def update_image_div(value, table):
+    [Input('table', 'derived_viewport_data') ])
+def update_image_div(table):
 
     try:
-        if value[-2].isnumeric():
-            video=value[-2:]
-        else:
-            video=value[-1]
-        images = buildimages(video, table)
+        images = buildimages(table)
         return images
     except:
         return None
 
+    
+    
+    
+    
+# Builds Images on Table View
+@application.callback(
+    Output('imagecontainer_review', 'children'),
+    [Input('table_review', 'derived_viewport_data') ])
+def update_image_div(table):
+
+    try:
+        images = buildimages(table)
+        return images
+    except:
+        return None
 
 @application.callback(Output('Saved','children'),
             [Input('save_table','n_clicks')],
@@ -530,8 +599,7 @@ def save_table(n_clicks, data,vname):
    #     raise dash.exceptions.PreventUpdate
     
     
-    
-    
+ 
     
 @application.callback(
     [Output('table', 'style_data'), Output('imagecontainerwrap', 'style')],
@@ -543,7 +611,18 @@ def tablepicsize(value):
     style_wrap={'width':cellwidth,'float':'left','display':'inline-block'}
     
     return style_cell, style_wrap
+
+
+@application.callback(
+    [Output('table_review', 'style_data'), Output('imagecontainerwrap_review', 'style')],
+    [Input('imSize_review', 'value')])   # Input('table', "derived_virtual_selected_rows")
+def tablepicsize(value):
     
+    cellwidth=str(value)+'px'
+    style_cell={'whiteSpace': 'normal', 'height': cellwidth} 
+    style_wrap={'width':cellwidth,'float':'left','display':'inline-block'}
+    
+    return style_cell, style_wrap
     
 
 ####
@@ -690,7 +769,12 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
 def pages(value):
     return value
 
-## Callback to get abnormal frames - by threshold. 
+
+@application.callback(
+    Output('table_review', 'page_size'),
+    [Input('num_rows_review', 'value')])   # Input('table', "derived_virtual_selected_rows")
+def pages(value):
+    return value
 
     
     
@@ -788,10 +872,10 @@ diffuse_bleedStates=[State('diffuse'+str(offset), 'value') for offset in config.
 bleedStates=[State('bleed'+str(offset), 'value') for offset in config.frames]
 
 @application.callback(sectOuts+abOuts+notesOuts+inflammationOuts+edemous_villiOuts+bleedOuts+diffuse_bleedOuts,        
-                     [Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all_var', 'children'),
+                     [Input("clone", "n_clicks"), Input('table_name', 'children'), Input('scrub_frame', 'value'), Input('set_all_var', 'children'),
                       Input('abButt_multi', 'value'),Input('notes_multi', 'value'),Input('inflammation_multi', 'value'),Input('edemous_villi_multi', 'value'),Input('diffuse_multi', 'value'),Input('bleed_multi', 'value')],
                      sectStates+abStates+notesStates+inflammationStates+edemous_villiStates+bleedStates+diffuse_bleedStates)
-def popvalues(vname, frame, set_all, abButt_multi, notes_multi,inflammation_multi,edemous_villi_multi,diffuse_multi,bleed_multi,*arg):
+def popvalues(clone, vname, frame, set_all, abButt_multi, notes_multi,inflammation_multi,edemous_villi_multi,diffuse_multi,bleed_multi,*arg):
     ctx = dash.callback_context
     if not ctx.triggered:
         button_id = 'No clicks yet'
@@ -809,10 +893,9 @@ def popvalues(vname, frame, set_all, abButt_multi, notes_multi,inflammation_mult
     edems=arg[4*nrows:5*nrows]
     bleeds=arg[5*nrows:6*nrows]
     diffuses=arg[6*nrows:7*nrows]
-    
-    if button_id not in ['abButt_multi','notes_multi','edemous_villi_multi','diffuse_multi','inflammation_multi','bleed_multi']:
+   
+    if button_id not in ['abButt_multi','notes_multi','edemous_villi_multi','diffuse_multi','inflammation_multi','bleed_multi', 'clone']:
         try:
-
             values=dbf.read_set(vname, frame, config.frames)
             blanks=len(config.frames)-len(values)
 
@@ -857,7 +940,8 @@ def popvalues(vname, frame, set_all, abButt_multi, notes_multi,inflammation_mult
         return list(sects) + list(pathos) + list(notes) + list(inflams) + list(edems) + [bleed_multi for k in range(0,nrows)] + list(diffuses) 
     elif button_id=='diffuse_multi':
         return list(sects) + list(pathos) + list(notes) + list(inflams) + list(edems) + list(bleeds) + [diffuse_multi for k in range(0,nrows)]
-
+    elif button_id=='clone':
+        return list(sects) + [abButt_multi for k in range(0,nrows)] + [notes_multi for k in range(0,nrows)] + [inflammation_multi for k in range(0,nrows)] + [edemous_villi_multi for k in range(0,nrows)] + [bleed_multi for k in range(0,nrows)]  + [diffuse_multi for k in range(0,nrows)]
 ### Select Video Table From Database - update 
 
 
@@ -883,8 +967,7 @@ def buildscrubprev(maximum, vid):
         
          
 
-### Add this later to add outputs to update based on table values - for now we just build
-### +sectOuts+abOuts+notesOuts,   
+
 ### Load table from database
 @application.callback([Output('table', 'data')],        
                      [Input('fill_table', 'n_clicks'), Input('table_name', 'children')])
@@ -895,9 +978,6 @@ def return_table_data(fill_table, vname):
             button_id = 'No clicks yet'
         else:
             button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-
-
-
         ### only update if videoselect changed.....
         if button_id=='fill_table':
             labelsdf=dbf.get_video_df(vname)
@@ -909,7 +989,57 @@ def return_table_data(fill_table, vname):
     except:
         raise dash.exceptions.PreventUpdate
 
+############
+### Load Table for Review and Save Table For Review
+############
 
+# dictionary shared between two callbacks below
+condition_dict = {        "abnormal_path": 'pathology !="normal"',
+                          "any": 'pathology !="normal" OR inflammation>0 OR edemous_villi>0 OR bleed>0',
+                          "bleeds": 'bleed>0',
+                          "edemous": 'edemous_villi>0',
+                          "inflammation": 'inflammation>0'}
+
+############ Load Abnormals Table
+
+@application.callback([Output('table_review', 'data')],        
+                     [Input('fill_table_review', 'n_clicks')], [State('abnormal_options','value')])
+def return_table_data(fill_table,abnormal):
+    # add special case for oracle later
+    condition = condition_dict[abnormal]
+    tables=dbf.findnames()
+    tables=[x for x in tables if x!='prog_table']
+    labelsdf=pd.DataFrame(dbf.get_anoms(tables, condition), columns=['index_','video', 'tract_section', 'pathology', 'inflammation', 'edemous_villi', 'bleed', 'diffuse_bleed','notes'])
+    return [labelsdf.to_dict('records')]
+
+
+############ Save Changes to Abnormals Table
+
+@application.callback(Output('Saved_review','children'),
+            [Input('save_table_review','n_clicks')],
+                     [State('table_review','data'), State('abnormal_options','value')])
+def save_table(n_clicks, data,abnormal):   
+    data=pd.DataFrame(data)
+    condition = condition_dict[abnormal]
+    tables=dbf.findnames()
+    tables=[x for x in tables if x!='prog_table']
+    labelsdf=pd.DataFrame(dbf.get_anoms(tables, condition), columns=['index_','video', 'tract_section', 'pathology', 'inflammation', 'edemous_villi', 'bleed', 'diffuse_bleed','notes'])
+    data=data[['index_','video', 'tract_section', 'pathology','inflammation','edemous_villi','bleed','diffuse_bleed','notes']]
+    labelsdf=labelsdf[['index_', 'video','tract_section', 'pathology','inflammation','edemous_villi','bleed','diffuse_bleed','notes']]
+    ans=[any(row[1]) for row in (~data.isin(labelsdf)).iterrows()]
+    
+    
+    data=data[ans]
+    j=0
+    rows_to_update=[]
+    for i,row in data.iterrows():
+        j=j+1
+        rows_to_update.append([row['video'], row['tract_section'], row['pathology'],
+                       row['notes'], row['inflammation'],row['edemous_villi'],row['bleed'],row['diffuse_bleed'],row['index_']])
+    
+    dbf.update_multi_row(rows_to_update)
+    return 'Saved ' + str(data) + ' rows at '+ str(datetime.datetime.now())  
+   
 
 ### Update Images on Annotation Scrub Table
 @application.callback(
@@ -947,10 +1077,7 @@ def update_nscrub_(scrub_frame):
 
 
 
-
-
-        
-@app.route('/vids/<path:path>')
+@application.server.route('/vids/<path:path>')
 def send_jss(path):
     pos=-(path[::-1].find('/'))
     filename=path[pos::]
