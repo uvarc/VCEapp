@@ -58,8 +58,7 @@ def update_multi_row(vals):
         sql_i=sql_i.format(vals[0], vals[1], vals[2],vals[3],vals[4],vals[5],vals[6], vals[7],vals[8])
         sql=sql+sql_i
    
-    cur = conn.cursor()
-    cur.executescript(sql)
+    conn.execute(sql)
     conn.commit()
     
     
@@ -70,8 +69,8 @@ def get_anoms(tables, condition):
         query = query + 'select index_,video,tract_section,pathology,inflammation,edemous_villi,bleed,diffuse_bleed,notes from ' + x + ' where ' + condition + ' UNION ALL ' 
     query=query[:-11]
     sql = query +';'
-    cur = conn.cursor()
-    cur.execute(sql)
+    
+    cur=conn.execute(sql)
     row=cur.fetchall()
     return row    
 
