@@ -42,7 +42,7 @@ def update_row(vidname, vals, row):
 
     
 ## Query to enable table update of multiple rows    
-def update_multi_row(vals):
+def update_multi_row(rows):
     sql=''
     for vals in rows: 
         print(vals)
