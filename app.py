@@ -57,10 +57,8 @@ Compress(app)
 print('app compressed')
 application = dash.Dash(__name__, server=app,url_base_pathname='/')
 
-#auth = dash_auth.BasicAuth(
-#    application,
-#    config.VALID_USERNAME_PASSWORD_PAIRS
-#)
+
+
 
 
 def buttonOptions(inputList):
@@ -460,7 +458,8 @@ application.layout = html.Div(
                     html.Div(id='imagecontainertop_review', style={'height':'80px'}),
                     html.Div(id='imagecontainer_review', style={'height':'1000px'}),
                 ], id='imagecontainerwrap_review', style={'width':'100px','float':'left','display':'inline-block'}),
-                    build_edit_table(config.sectOptions, config.abnormalOptions, ID='table_review')
+                    build_edit_table(config.sectOptions, config.abnormalOptions, ID='table_review'),
+                    html.P(id='test_table_select',children='cow')
                 ],
                 style={'display':'inline-block', 'width':'100%'}),
             
@@ -515,12 +514,41 @@ application.layout = html.Div(
     html.P('',id='placeholder2', style={'display': 'none'}),
     html.P('',id='placeholder3', style={'display': 'none'}),
     html.P('',id='set_all_var', style={'display': 'none'}),
-    
+    html.P('',id='last_scrub_but', style={'display': 'none'}),
+     
     html.P(id='test'),
     html.Div([Keyboard(id="keyboard"), html.Div(id="output")])
                       ], style={'max-width':'100%'})
 
 
+## ALL INPUTS TO TABLE
+
+## Select Video in Video Table by Selecting Row in Review tool.
+@application.callback(
+    Output('vid_table', 'selected_rows'),
+    [Input('table_review', 'derived_viewport_selected_rows')], [State('table_review', 'derived_viewport_data'),State('vid_table', 'data')])   # Input('table', "derived_virtual_selected_rows")
+def display_click_data(selected_rows,data,vid_table_data):
+    try:
+        video = str(data[int(selected_rows[0])]['video'])
+        vidTable=pd.DataFrame(vid_table_data)
+        return np.where(vidTable.video==video)[0] #indi = str(data[int(selected_rows[0])]['index_'])
+        
+    except:
+        raise dash.exceptions.PreventUpdate
+
+
+        
+@application.callback(
+    Output('test_table_select', 'children'),
+    [Input('table_review', 'derived_viewport_selected_rows')], [State('table_review', 'derived_viewport_data'),State('vid_table', 'data')])   # Input('table', "derived_virtual_selected_rows")
+def display_click_data(selected_rows,data,vid_table_data):
+    try:
+        return str(data[int(selected_rows[0])]['index_'])
+        
+    except:
+        raise dash.exceptions.PreventUpdate        
+
+        
 @application.callback(Output("output", "children"), [Input("keyboard", "keydown")])
 def keydown(event):
     return json.dumps(event)
@@ -675,14 +703,17 @@ def update_vid_table(n_clicks,initialized, vname, progress, notes):
     return 'initialized', data
 
 
+
+
 ## Change table selection based on current frame and using offset (table does not start at 0)
 @application.callback(
-    Output('scrub_frame', 'value'),
+    [Output('scrub_frame', 'value'), Output('last_scrub_but','children')],
     [Input('next', 'n_clicks'),Input('prev', 'n_clicks'),
      Input('next_set', 'n_clicks'),Input('prev_set', 'n_clicks'),
-     Input('scrub_frame', 'min'), Input('scrub_frame', 'max'), Input("keyboard", "keydown")],
-    [State('scrub_frame', 'value')])
-def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_val, keyboard, frame):
+     Input('scrub_frame', 'min'), Input('scrub_frame', 'max'), Input("keyboard", "keydown"),
+     Input('table_review', 'derived_viewport_selected_rows')],
+    [State('scrub_frame', 'value'),State('table_review', 'derived_viewport_data'),State('last_scrub_but','children')])
+def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_val, keyboard, selected_rows,frame,data,last_scrub_but):
 
     ctx = dash.callback_context
 
@@ -703,7 +734,7 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
             val=frame+1
             if val > max_val:
                 val=max_val
-            return val #[int(test['points'][0]['x'])]
+            return val, button_id #[int(test['points'][0]['x'])]
         except:
             raise dash.exceptions.PreventUpdate
             
@@ -712,7 +743,7 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
             val=frame-1
             if val<0:
                 val=0
-            return val #[int(test['points'][0]['x'])]
+            return val, button_id #[int(test['points'][0]['x'])]
         except:
             raise dash.exceptions.PreventUpdate
     
@@ -721,7 +752,7 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
             val=frame+int(config.n_images)
             if val > max_val:
                 val=max_val
-            return val #[int(test['points'][0]['x'])]
+            return val, button_id #[int(test['points'][0]['x'])]
         except:
             raise dash.exceptions.PreventUpdate
    
@@ -730,13 +761,16 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
             val=frame-int(config.n_images)
             if val<0:
                 val=0
-            return val #[int(test['points'][0]['x'])]
+            return val, button_id #[int(test['points'][0]['x'])]
         except:
             raise dash.exceptions.PreventUpdate
    
     elif button_id == 'scrub_frame':
         try:    
-            return int(min_val) 
+            if last_scrub_but!=table_review:
+                return int(min_val), button_id 
+            else:
+                raise dash.exceptions.PreventUpdate
         except:
             raise dash.exceptions.PreventUpdate
     
@@ -745,7 +779,7 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
             val=frame+int(config.n_images)
             if val > max_val:
                 val=max_val
-            return val #[int(test['points'][0]['x'])]
+            return val, button_id #[int(test['points'][0]['x'])]
         except:
             raise dash.exceptions.PreventUpdate 
     elif button_id == 'keyboard' and keyboard['key'] in ['ArrowLeft']:
@@ -753,10 +787,11 @@ def diplay_table(next_n_clicks,prev_n_clicks, next_set, prev_set, min_val, max_v
             val=frame-int(config.n_images)
             if val<0:
                 val=0
-            return val #[int(test['points'][0]['x'])]
+            return val, button_id #[int(test['points'][0]['x'])]
         except:
             raise dash.exceptions.PreventUpdate
-    
+    elif button_id == 'table_review':
+        return int(data[int(selected_rows[0])]['index_']), button_id
     else:
         raise dash.exceptions.PreventUpdate
     
@@ -1083,7 +1118,6 @@ def send_jss(path):
     filename=path[pos::]
     path=path[0:pos]
     return send_from_directory(filespath+path, filename)
-
 
 if __name__ == '__main__':
     app.run(debug=True,host='0.0.0.0')
