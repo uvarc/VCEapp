@@ -31,7 +31,7 @@ jobs:
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
-  Notify:
+  DCOS-Deployment:
     runs-on: ubuntu-latest
     if: ${{ success() }}
     needs: Build
