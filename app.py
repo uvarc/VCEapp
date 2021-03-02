@@ -147,17 +147,18 @@ def buildTopTableStatic(sectOptions,abnormalOptions,frames):
             options=abnormalOpts, labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'MistyRose','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'}))   
         
-        inflammation.append(html.Div(dcc.Checklist(id='inflammation'+ str(offset),
-            options=[{'label': 'inflammation', 'value': 1}], labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'RosyBrown','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
-            ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'}))   
+        
         edemous_villi.append(html.Div(dcc.Checklist(id='edemous_villi'+ str(offset),
             options=[{'label': 'edemous_villi', 'value': 1}], labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'Tan','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'})) 
         bleed.append(html.Div(dcc.Checklist(id='bleed'+ str(offset),
             options=[{'label': 'bleed', 'value': 1}],labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'LightCoral','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'})) 
+        inflammation.append(html.Div(dcc.Checklist(id='inflammation'+ str(offset),
+            options=[{'label': 'Model Review', 'value': 1}], labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'RosyBrown','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'}))   
         diffuse_bleeding.append(html.Div(dcc.Checklist(id='diffuse'+ str(offset),
-            options=[{'label': 'diffuse_bleeding', 'value': 1}],labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'DarkSalmon','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
+            options=[{'label': 'Physician Review', 'value': 1}],labelStyle={'display': 'block'}, style={'width':'100%', 'background-color': 'DarkSalmon','border-width': '2px','border-style': 'solid', 'border-color': 'white'}
             ), style={'max-width':max_image_width,  'width':'250px', 'display': 'inline-block'})) 
         
         notes.append(html.Div(dcc.Textarea(id='notes'+ str(offset),
